@@ -217,7 +217,7 @@
 
 		createTable(1,1);
 
-		function tableToImage() {
+		/*function tableToImage() {
 		    const tableElement = document.getElementById('planner');
 
 		    html2canvas(tableElement, { scale: 2, backgroundColor: null })
@@ -256,7 +256,31 @@
 
 		        document.getElementById('tableCode').value = JSON.stringify({ rows, columns, cells });
 		    });
+		}*/
+
+		async function tableToImage() {
+		    const tableElement = document.getElementById('planner');
+		    if (!tableElement) return;
+
+		    // Generar la imagen como antes
+		    const canvas = await html2canvas(tableElement, { scale: 2, backgroundColor: "#FFFFFF" });
+		    const imgData = canvas.toDataURL('image/png');
+		    localStorage.setItem('plannerImage', imgData);
+
+		    // Subir a Firebase
+		    const storageRef = ref(storage, 'planner/plannerImage.png');
+		    await uploadString(storageRef, imgData, 'data_url');
+		    const downloadURL = await getDownloadURL(storageRef);
+
+		    const docRef = doc(db, 'planner', 'latestImage');
+		    await setDoc(docRef, {
+		        url: downloadURL,
+		        updated: new Date().toISOString()
+		    });
+
+		    alert("✅ Imagen subida correctamente a Firebase y compartida online");
 		}
+
 
 
 
@@ -403,16 +427,17 @@
 
 	</script>
 
-	<script type="module">
+		<script type="module">
 		  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 		  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 		  import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
+		  // 🔧 Tus credenciales de Firebase
 		  const firebaseConfig = {
 		    apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
 		    authDomain: "schedule-it-69420.firebaseapp.com",
 		    projectId: "schedule-it-69420",
-		    storageBucket: "schedule-it-69420.appspot.com", // recomendado .appspot.com
+		    storageBucket: "schedule-it-69420.appspot.com",
 		    messagingSenderId: "541795813911",
 		    appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
 		    measurementId: "G-K5BR2NTY3C"
@@ -422,17 +447,18 @@
 		  const db = getFirestore(app);
 		  const storage = getStorage(app);
 
+		  // Reemplaza la función tableToImage
 		  window.tableToImage = async function() {
 		    const tableElement = document.getElementById('planner');
 
-		    // Generar imagen solo de la tabla
-		    const canvas = await html2canvas(tableElement, { scale: 2, backgroundColor: "#FFFFFF" });
+		    // ⚡ Generar la imagen de la tabla exactamente como antes
+		    const canvas = await html2canvas(tableElement, { scale: 2, backgroundColor: null });
 		    const imgData = canvas.toDataURL('image/png');
 
 		    // Guardar localmente
 		    localStorage.setItem('plannerImage', imgData);
 
-		    // Subir a Firebase Storage
+		    // 🔼 Subir la imagen a Firebase Storage
 		    const storageRef = ref(storage, 'planner/plannerImage.png');
 		    await uploadString(storageRef, imgData, 'data_url');
 
@@ -447,7 +473,6 @@
 		    alert("✅ Imagen de la tabla subida correctamente a Firebase");
 		  }
 		</script>
-
 
 </body>
 </html>
