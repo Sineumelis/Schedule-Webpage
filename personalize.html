@@ -45,6 +45,16 @@
   		td:focus{
   			outline: 2px solid #007bff;
   		}
+
+		#plannerCabecera {
+		  width: 100%;
+		  max-width: 900px;
+		  height: auto;
+		  display: block;
+		  margin: 0 auto 10px auto;
+		  border-radius: 6px;
+		  box-shadow: 0 0 5px rgba(0,0,0,0.15);
+		}
 	</style>
 </head>
 <body>
@@ -148,11 +158,8 @@
 
 	<div id="plannerWrapper">
 	  <div id="plannerHeader" style="text-align:center; margin-bottom:10px;">
-	    <img src="LOGO1.png" style="height:50px; vertical-align:middle;">
-	    <img src="LOGO2.png" style="height:50px; vertical-align:middle; margin-left:10px;">
-	    <span style="font-weight:bold; font-size:20px; margin-left:15px;">
-	      [Nombre de la Institución]
-	    </span>
+	    <img src="cabecero.jpeg" alt="Cabecera institucional" id="plannerCabecera"
+	         style="max-width:100%; height:auto; display:block; margin:0 auto;">
 	  </div>
 	  <table id="planner"></table>
 	</div>
@@ -418,7 +425,8 @@
 		async function tableToImage() {
 		    try {
 		        const wrapperElement = document.getElementById('plannerWrapper');
-		        const canvas = await html2canvas(wrapperElement, { scale: 2, backgroundColor: null });
+				const canvas = await html2canvas(wrapperElement, { scale: 2, backgroundColor: null });
+
 		        const imgData = canvas.toDataURL('image/png');
 
 		        // Chequear si ya existe una imagen
