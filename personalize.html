@@ -136,6 +136,9 @@
 
 	<br>
 
+	<button onclick="loadFromFirestore()">Cargar desde Firestore</button>
+
+
 	<table id="planner"></table>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -446,91 +449,103 @@
 	  const db = getFirestore(app);
 
 	  // 🧠 Función para GUARDAR la tabla
-	  window.tableToImage = async function () {
-	    const table = document.getElementById('planner');
-	    if (!table) return alert("No hay tabla para guardar.");
+	  // 🧠 Función para GUARDAR la tabla (sin arrays anidados)
+window.tableToImage = async function () {
+  const table = document.getElementById('planner');
+  if (!table) return alert("No hay tabla para guardar.");
 
-	    const rows = table.rows.length;
-	    const columns = table.rows[0]?.cells.length || 0;
-	    const cells = [];
-	    const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
+  const rows = table.rows.length;
+  const columns = table.rows[0]?.cells.length || 0;
+  const cellList = [];
 
-	    for (let r = 0; r < rows; r++) {
-	      cells[r] = [];
-	      let colIndex = 0;
-	      const tr = table.rows[r];
+  const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
 
-	      for (let ci = 0; ci < tr.cells.length; ci++) {
-	        while (occupied[r][colIndex]) colIndex++;
-	        const td = tr.cells[ci];
-	        cells[r][colIndex] = {
-	          text: td.innerHTML,
-	          color: td.style.backgroundColor || "#FFFFFF",
-	          rowspan: td.rowSpan || 1
-	        };
-	        for (let i = 0; i < td.rowSpan; i++) {
-	          if (r + i < rows) occupied[r + i][colIndex] = true;
-	        }
-	        colIndex++;
-	      }
-	    }
+  for (let r = 0; r < rows; r++) {
+    let colIndex = 0;
+    const tr = table.rows[r];
 
-	    try {
-	      await setDoc(doc(db, "planner", "latestTable"), {
-	        rows,
-	        columns,
-	        cells,
-	        updated: new Date().toISOString()
-	      });
-	      alert("✅ Tabla guardada correctamente en Firestore.");
-	    } catch (e) {
-	      console.error("Error al guardar en Firestore:", e);
-	      alert("❌ Error al guardar en Firestore. Mira la consola.");
-	    }
-	  };
+    for (let ci = 0; ci < tr.cells.length; ci++) {
+      while (occupied[r][colIndex]) colIndex++;
 
-	  // 🔄 Función para CARGAR la tabla guardada
-	  window.loadFromFirestore = async function () {
-	    try {
-	      const docRef = doc(db, "planner", "latestTable");
-	      const snapshot = await getDoc(docRef);
-	      if (snapshot.exists()) {
-	        const data = snapshot.data();
-	        console.log("📥 Datos cargados:", data);
+      const td = tr.cells[ci];
+      cellList.push({
+        row: r,
+        col: colIndex,
+        text: td.innerHTML,
+        color: td.style.backgroundColor || "#FFFFFF",
+        rowspan: td.rowSpan || 1
+      });
 
-	        // Reconstruir tabla visual
-	        const table = document.getElementById("planner");
-	        table.innerHTML = '';
-	        const { rows, columns, cells } = data;
-	        const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
+      for (let i = 0; i < td.rowSpan; i++) {
+        if (r + i < rows) occupied[r + i][colIndex] = true;
+      }
+      colIndex++;
+    }
+  }
 
-	        for (let r = 0; r < rows; r++) {
-	          const tr = table.insertRow();
-	          let colIndex = 0;
-	          while (colIndex < columns) {
-	            if (occupied[r][colIndex]) { colIndex++; continue; }
-	            const cellData = cells[r][colIndex];
+  try {
+    await setDoc(doc(db, "planner", "latestTable"), {
+      rows,
+      columns,
+      cells: cellList, // ✅ lista plana
+      updated: new Date().toISOString()
+    });
+    alert("✅ Tabla guardada correctamente en Firestore.");
+  } catch (e) {
+    console.error("Error al guardar en Firestore:", e);
+    alert("❌ Error al guardar en Firestore. Mira la consola.");
+  }
+};
+
+	// 🔄 Función para CARGAR la tabla guardada (reconstruye desde lista)
+	window.loadFromFirestore = async function () {
+	  try {
+	    const docRef = doc(db, "planner", "latestTable");
+	    const snapshot = await getDoc(docRef);
+	    if (snapshot.exists()) {
+	      const data = snapshot.data();
+	      console.log("📥 Datos cargados:", data);
+
+	      const table = document.getElementById("planner");
+	      table.innerHTML = '';
+
+	      const { rows, columns, cells } = data;
+	      const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
+
+	      for (let r = 0; r < rows; r++) {
+	        const tr = table.insertRow();
+	        for (let c = 0; c < columns; c++) {
+	          if (occupied[r][c]) continue;
+	          const cellData = cells.find(cell => cell.row === r && cell.col === c);
+	          if (!cellData) {
 	            const td = tr.insertCell();
 	            td.contentEditable = "true";
-	            td.innerHTML = cellData.text;
-	            td.style.backgroundColor = cellData.color;
-	            if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
-	            for (let i = 0; i < td.rowSpan; i++) {
-	              if (r + i < rows) occupied[r + i][colIndex] = true;
-	            }
-	            colIndex++;
+	            td.innerHTML = "";
+	            td.style.backgroundColor = "#FFFFFF";
+	            continue;
+	          }
+
+	          const td = tr.insertCell();
+	          td.contentEditable = "true";
+	          td.innerHTML = cellData.text;
+	          td.style.backgroundColor = cellData.color;
+	          if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
+
+	          for (let i = 0; i < td.rowSpan; i++) {
+	            if (r + i < rows) occupied[r + i][c] = true;
 	          }
 	        }
-
-	        alert("✅ Tabla cargada desde Firestore.");
-	      } else {
-	        alert("⚠️ No hay datos guardados todavía.");
 	      }
-	    } catch (e) {
-	      console.error("Error al cargar Firestore:", e);
-	      alert("❌ Error al cargar Firestore. Mira la consola.");
+
+	      alert("✅ Tabla cargada desde Firestore.");
+	    } else {
+	      alert("⚠️ No hay datos guardados todavía.");
 	    }
-	  };
+	  } catch (e) {
+	    console.error("Error al cargar Firestore:", e);
+	    alert("❌ Error al cargar Firestore. Mira la consola.");
+	  }
+	};
 	</script>
 
 
