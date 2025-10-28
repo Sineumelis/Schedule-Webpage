@@ -185,22 +185,24 @@
 		    }
 		});*/
 
-		window.addEventListener('load', () => {
-		    const data = localStorage.getItem('plannerImage');
-		    if (data) {
-		        image.src = data; 
-		    }
+		// 🔁 Restaurar la última tabla guardada desde Firestore al cargar la página
+		window.addEventListener('load', async () => {
+		    try {
+		        const snapshot = await docRef.get();
+		        if (snapshot.exists && snapshot.data().tableJson) {
+		            const tableData = snapshot.data().tableJson;
+		            document.getElementById('loadCode').value = JSON.stringify(tableData);
+		            loadTableFromCode(); // reconstruye automáticamente
 
-		    // Listener en tiempo real para Firestore
-		    db.collection("planner").doc("latest")
-		      .onSnapshot(doc => {
-		          if (doc.exists) {
-		              const data = doc.data();
-		              document.getElementById('toggle_image').src = data.imageBase64;
-		          }
-		      }, err => {
-		          console.error("Error leyendo Firestore:", err);
-		    });
+		            if (snapshot.data().code) {
+		                document.getElementById('tableCode').value = snapshot.data().code;
+		            }
+
+		            showNotification("Tabla restaurada desde Firestore ✅", 2500);
+		        }
+		    } catch (err) {
+		        console.error("Error restaurando tabla:", err);
+		    }
 		});
 
 </script>
