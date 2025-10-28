@@ -170,10 +170,15 @@
 	const db = firebase.firestore();
 	</script>-->
 
+	<!-- Firebase App (compat) -->
+	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+	<!-- Firebase Firestore (compat) -->
+	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 	<script>
 		// Import the functions you need from the SDKs you need
-		import { initializeApp } from "firebase/app";
-		import { getAnalytics } from "firebase/analytics";
+		//import { initializeApp } from "firebase/app";
+		//import { getAnalytics } from "firebase/analytics";
 		// TODO: Add SDKs for Firebase products that you want to use
 		// https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -189,9 +194,12 @@
 		  measurementId: "G-K5BR2NTY3C"
 		};
 
+		firebase.initializeApp(firebaseConfig);
+ 	 	const db = firebase.firestore();
+ 	 	
 		// Initialize Firebase
-		const app = initializeApp(firebaseConfig);
-		const analytics = getAnalytics(app);
+		//const app = initializeApp(firebaseConfig);
+		//const analytics = getAnalytics(app);
 	</script>
 
 
@@ -284,13 +292,14 @@
 
 		        // Guardar en Firestore
 		        db.collection("planner").doc("latest").set({
-		            imageBase64: imgData,
-		            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-		        }).then(() => {
-		            console.log("Imagen guardada en Firestore ✅");
-		        }).catch(err => {
-		            console.error("Error guardando en Firestore:", err);
-		        });
+				    imageBase64: imgData,
+				    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+				}).then(() => {
+				    console.log("Imagen guardada en Firestore ✅");
+				}).catch(err => {
+				    console.error("Error guardando en Firestore:", err);
+				});
+
 
 		        // Guardar código de la tabla como antes
 		        const rows = table.rows.length;

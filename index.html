@@ -186,7 +186,6 @@
 		});*/
 
 		window.addEventListener('load', () => {
-		    // Primero carga la imagen local si existe
 		    const data = localStorage.getItem('plannerImage');
 		    if (data) {
 		        image.src = data; 
@@ -197,12 +196,13 @@
 		      .onSnapshot(doc => {
 		          if (doc.exists) {
 		              const data = doc.data();
-		              image.src = data.imageBase64;
+		              document.getElementById('toggle_image').src = data.imageBase64;
 		          }
 		      }, err => {
 		          console.error("Error leyendo Firestore:", err);
-		      });
+		    });
 		});
+
 </script>
 </body>
 </html>
