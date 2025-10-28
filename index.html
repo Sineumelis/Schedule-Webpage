@@ -186,22 +186,22 @@
 		});*/
 
 		window.addEventListener('load', () => {
-	    // Primero carga la imagen local si existe
-	    const data = localStorage.getItem('plannerImage');
-	    if (data) {
-	        image.src = data; 
-	    }
+		    // Primero carga la imagen local si existe
+		    const data = localStorage.getItem('plannerImage');
+		    if (data) {
+		        image.src = data; 
+		    }
 
-	    // Luego intenta cargar la última imagen desde Firestore
-	    db.collection("planner").doc("latest")
-	      .get()
-	      .then(doc => {
-	          if (doc.exists) {
-	              const data = doc.data();
-	              document.getElementById('toggle_image').src = data.imageBase64;
-	          }
-	      })
-	      .catch(err => console.error("Error leyendo Firestore:", err));
+		    // Listener en tiempo real para Firestore
+		    db.collection("planner").doc("latest")
+		      .onSnapshot(doc => {
+		          if (doc.exists) {
+		              const data = doc.data();
+		              image.src = data.imageBase64;
+		          }
+		      }, err => {
+		          console.error("Error leyendo Firestore:", err);
+		      });
 		});
 </script>
 </body>
