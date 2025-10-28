@@ -433,13 +433,13 @@
 		import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
 		const firebaseConfig = {
-		    apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
-		    authDomain: "schedule-it-69420.firebaseapp.com",
-		    projectId: "schedule-it-69420",
-		    storageBucket: "schedule-it-69420.appspot.com",
-		    messagingSenderId: "541795813911",
-		    appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
-		    measurementId: "G-K5BR2NTY3C"
+		  apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
+		  authDomain: "schedule-it-69420.firebaseapp.com",
+		  projectId: "schedule-it-69420",
+		  storageBucket: "schedule-it-69420.appspot.com",
+		  messagingSenderId: "541795813911",
+		  appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
+		  measurementId: "G-K5BR2NTY3C"
 		};
 
 		const app = initializeApp(firebaseConfig);
@@ -447,31 +447,28 @@
 		const storage = getStorage(app);
 
 		window.tableToImage = async function() {
-		    const tableElement = document.getElementById('planner');
-		    if (!tableElement) return;
+		  const tableElement = document.getElementById('planner');
+		  if (!tableElement) return;
 
-		    const canvas = await html2canvas(tableElement, { scale: 2, backgroundColor: "#FFFFFF" });
-		    const imgData = canvas.toDataURL('image/png');
+		  const canvas = await html2canvas(tableElement, { scale: 2, backgroundColor: "#FFFFFF" });
+		  const imgData = canvas.toDataURL('image/png');
 
-		    // Guardar localmente
-		    localStorage.setItem('plannerImage', imgData);
+		  // 📤 Subir a Firebase Storage
+		  const storageRef = ref(storage, 'planner/plannerImage.png');
+		  await uploadString(storageRef, imgData, 'data_url');
 
-		    // Subir a Firebase Storage
-		    const storageRef = ref(storage, 'planner/plannerImage.png');
-		    await uploadString(storageRef, imgData, 'data_url');
+		  // 🔗 Obtener URL pública
+		  const downloadURL = await getDownloadURL(storageRef);
 
-		    // Obtener URL pública
-		    const downloadURL = await getDownloadURL(storageRef);
+		  // 🗃️ Guardar URL en Firestore
+		  const docRef = doc(db, 'planner', 'latestImage');
+		  await setDoc(docRef, {
+		    url: downloadURL,
+		    updated: new Date().toISOString()
+		  });
 
-		    // Guardar URL en Firestore
-		    const docRef = doc(db, 'planner', 'latestImage');
-		    await setDoc(docRef, {
-		        url: downloadURL,
-		        updated: new Date().toISOString()
-		    });
-
-		    alert("✅ Imagen subida correctamente a Firebase");
-		}
+		  alert("✅ Imagen subida correctamente a Firebase");
+		};
 		</script>
 
 
