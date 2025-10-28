@@ -45,16 +45,6 @@
   		td:focus{
   			outline: 2px solid #007bff;
   		}
-
-		#plannerCabecera {
-		  width: 100%;
-		  max-width: 900px;
-		  height: auto;
-		  display: block;
-		  margin: 0 auto 10px auto;
-		  border-radius: 6px;
-		  box-shadow: 0 0 5px rgba(0,0,0,0.15);
-		}
 	</style>
 </head>
 <body>
@@ -126,15 +116,7 @@
 
 	    <label>Misurare:
 		    <input list="fontSizes" id="fontSizeInput" type="number" min="1" value="16" onchange="applyFontSize()">
-		    <!--<datalist id="fontSizes">
-		        <option value="8">
-		        <option value="10">
-		        <option value="12">
-		        <option value="14">
-		        <option value="18">
-		        <option value="24">
-		        <option value="32">
-		    </datalist>-->
+		    
 		</label>
 
 
@@ -154,73 +136,9 @@
 
 	<br>
 
-	<!--<table id="planner"></table>-->
-
-	<div id="plannerWrapper">
-	  <div id="plannerHeader" style="text-align:center; margin-bottom:10px;">
-	    <img src="cabecero.jpeg" alt="Cabecera institucional" id="plannerCabecera"
-	         style="max-width:100%; height:auto; display:block; margin:0 auto;">
-	  </div>
-	  <table id="planner"></table>
-	</div>
-
+	<table id="planner"></table>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-	<!-- Firebase App -->
-	<!--<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>-->
-	<!-- Firebase Firestore -->
-	<!--<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>-->
-
-
-	<!--<script>
-	// Configuración de Firebase (cambia con tus datos)
-	const firebaseConfig = {
-	    apiKey: "TU_API_KEY",
-	    authDomain: "TU_PROYECTO.firebaseapp.com",
-	    projectId: "TU_PROYECTO",
-	    storageBucket: "TU_PROYECTO.appspot.com",
-	    messagingSenderId: "TU_SENDER_ID",
-	    appId: "TU_APP_ID"
-	};
-
-	// Inicializar Firebase
-	firebase.initializeApp(firebaseConfig);
-	const db = firebase.firestore();
-	</script>-->
-
-	<!-- Firebase App (compat) -->
-	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-	<!-- Firebase Firestore (compat) -->
-	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-	<script>
-		// Import the functions you need from the SDKs you need
-		//import { initializeApp } from "firebase/app";
-		//import { getAnalytics } from "firebase/analytics";
-		// TODO: Add SDKs for Firebase products that you want to use
-		// https://firebase.google.com/docs/web/setup#available-libraries
-
-		// Your web app's Firebase configuration
-		// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-		const firebaseConfig = {
-		  apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
-		  authDomain: "schedule-it-69420.firebaseapp.com",
-		  projectId: "schedule-it-69420",
-		  storageBucket: "schedule-it-69420.firebasestorage.app",
-		  messagingSenderId: "541795813911",
-		  appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
-		  measurementId: "G-K5BR2NTY3C"
-		};
-
-		firebase.initializeApp(firebaseConfig);
- 	 	const db = firebase.firestore();
-
-		// Initialize Firebase
-		//const app = initializeApp(firebaseConfig);
-		//const analytics = getAnalytics(app);
-	</script>
-
 
 <!-- Save Existing Data is needed -->
 	<script>
@@ -299,28 +217,14 @@
 
 		createTable(1,1);
 
-		/*function tableToImage() {
+		function tableToImage() {
 		    const tableElement = document.getElementById('planner');
 
 		    html2canvas(tableElement, { scale: 2, backgroundColor: null })
 		    .then(canvas => {
 		        const imgData = canvas.toDataURL('image/png');
-
-		        // Guardar localmente
 		        localStorage.setItem('plannerImage', imgData);
 
-		        // Guardar en Firestore
-		        db.collection("planner").doc("latest").set({
-				    imageBase64: imgData,
-				    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-				}).then(() => {
-				    console.log("Imagen guardada en Firestore ✅");
-				}).catch(err => {
-				    console.error("Error guardando en Firestore:", err);
-				});
-
-
-		        // Guardar código de la tabla como antes
 		        const rows = table.rows.length;
 		        const columns = table.rows[0]?.cells.length || 0;
 		        const cells = [];
@@ -332,159 +236,29 @@
 		            const tr = table.rows[r];
 
 		            for (let ci = 0; ci < tr.cells.length; ci++) {
+
 		                while (occupied[r][colIndex]) colIndex++;
+
 		                const td = tr.cells[ci];
 		                cells[r][colIndex] = {
 		                    text: td.textContent,
 		                    color: td.style.backgroundColor || "#FFFFFF",
 		                    rowspan: td.rowSpan || 1
 		                };
+
 		                for (let i = 0; i < td.rowSpan; i++) {
 		                    if (r + i < rows) occupied[r + i][colIndex] = true;
 		                }
+
 		                colIndex++;
 		            }
 		        }
+
 		        document.getElementById('tableCode').value = JSON.stringify({ rows, columns, cells });
 		    });
-		}*/
-
-		const docRef = db.collection("planner").doc("latest");
-		const tableElement = document.getElementById('planner');
-		const tableCodeTextarea = document.getElementById('tableCode');
-		const loadCodeTextarea = document.getElementById('loadCode');
-		const rows_select = document.getElementById('rows_selected');
-		const columns_select = document.getElementById('columns_selected');
-
-		// Generar un código único para cada imagen (timestamp + random)
-		function generateImageCode() {
-		    return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,8);
-		}
-
-		function serializeTable() {
-		    const rows = tableElement.rows.length;
-		    const columns = tableElement.rows[0]?.cells.length || 0;
-		    const cells = [];
-		    const occupied = Array.from({length: rows}, () => Array(columns).fill(false));
-
-		    for (let r = 0; r < rows; r++) {
-		        cells[r] = [];
-		        let colIndex = 0;
-		        const tr = tableElement.rows[r];
-
-		        for (let ci = 0; ci < tr.cells.length; ci++) {
-		            while (occupied[r][colIndex]) colIndex++;
-		            const td = tr.cells[ci];
-		            const style = window.getComputedStyle(td);
-
-		            cells[r][colIndex] = {
-		                text: td.innerHTML, // guarda contenido con formato (negrita, color, etc.)
-		                color: style.backgroundColor || "#FFFFFF",
-		                rowspan: td.rowSpan || 1,
-		                fontFamily: style.fontFamily,
-		                fontSize: style.fontSize,
-		                fontColor: style.color,
-		                fontWeight: style.fontWeight,
-		                fontStyle: style.fontStyle,
-		                textDecoration: style.textDecoration
-		            };
-
-		            for (let i = 0; i < td.rowSpan; i++) {
-		                if (r + i < rows) occupied[r + i][colIndex] = true;
-		            }
-		            colIndex++;
-		        }
-		    }
-
-		    return { rows, columns, cells };
 		}
 
 
-		function showNotification(message, duration = 2000) {
-		    const notif = document.createElement('div');
-		    notif.textContent = message;
-		    notif.style.position = 'fixed';
-		    notif.style.top = '20px';
-		    notif.style.right = '20px';
-		    notif.style.padding = '10px 20px';
-		    notif.style.backgroundColor = '#333';
-		    notif.style.color = 'white';
-		    notif.style.borderRadius = '8px';
-		    notif.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
-		    notif.style.zIndex = 9999;
-		    notif.style.opacity = 0;
-		    notif.style.transition = 'opacity 0.3s';
-		    document.body.appendChild(notif);
-		    requestAnimationFrame(() => { notif.style.opacity = 1; });
-		    setTimeout(() => {
-		        notif.style.opacity = 0;
-		        setTimeout(() => { notif.remove(); }, 300);
-		    }, duration);
-		}
-
-		async function tableToImage() {
-		    try {
-		        // En lugar de capturar solo la tabla, capturamos toda la cabecera + tabla
-		        const wrapperElement = document.getElementById('plannerWrapper');
-		        const canvas = await html2canvas(wrapperElement, { scale: 2, backgroundColor: "#FFFFFF" });
-
-
-		        const imgData = canvas.toDataURL('image/png');
-
-		        // Chequear si ya existe una imagen
-		        const snapshot = await docRef.get();
-		        if (snapshot.exists) {
-		            const ok1 = confirm("Ya existe una imagen guardada. Esta acción sobrescribirá la anterior. ¿Continuar?");
-		            if (!ok1) {
-		                showNotification("Generación cancelada");
-		                return;
-		            }
-		            const ok2 = confirm("Confirmación final: ¿Seguro que quieres sobrescribir la imagen anterior?");
-		            if (!ok2) {
-		                showNotification("Generación cancelada");
-		                return;
-		            }
-		        } else {
-		            const ok = confirm("Guardar nueva imagen en Firestore?");
-		            if (!ok) {
-		                showNotification("Generación cancelada");
-		                return;
-		            }
-		        }
-
-		        const newCode = generateImageCode();
-		        const tableJson = serializeTable(); // incluye estilos ahora
-
-		        await docRef.set({
-		            imageBase64: imgData,
-		            code: newCode,
-		            tableJson: tableJson,
-		            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-		        });
-
-		        localStorage.setItem('plannerImage', imgData);
-		        tableCodeTextarea.value = newCode;
-
-		        showNotification("Imagen generada y guardada correctamente ✅", 2500);
-		    } catch (err) {
-		        console.error("Error generando/guardando imagen:", err);
-		        alert("Error generando o guardando la imagen. Mira la consola.");
-		    }
-		}
-
-
-		// 🔥 Escucha automática al cargar la página para mostrar la última imagen (si quieres mostrarla en la edición también)
-		window.addEventListener('load', () => {
-		    docRef.onSnapshot(doc => {
-		        if (doc.exists) {
-		            const data = doc.data();
-		            if (data.imageBase64) {
-		                // Si quieres mostrar la imagen generada en el editor, puedes crear un <img> donde quieras
-		                console.log("Imagen actualizada desde Firestore");
-		            }
-		        }
-		    });
-		});
 
 		function loadTableFromCode() {
 		    const code = document.getElementById('loadCode').value;
@@ -502,6 +276,7 @@
 		            let colIndex = 0;
 
 		            while (colIndex < columns) {
+		                // Saltar columnas ocupadas
 		                if (occupied[r][colIndex]) {
 		                    colIndex++;
 		                    continue;
@@ -510,25 +285,17 @@
 		                const cellData = cells[r][colIndex] || { text: '', color: '#FFFFFF', rowspan: 1 };
 		                const td = tr.insertCell();
 		                td.contentEditable = "true";
-		                td.innerHTML = cellData.text || "";
-		                td.style.backgroundColor = cellData.color || "#FFFFFF";
+		                td.textContent = cellData.text;
+		                td.style.backgroundColor = cellData.color;
 		                if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
 
-		                // restaurar estilos si existen
-		                if (cellData.fontFamily) td.style.fontFamily = cellData.fontFamily;
-		                if (cellData.fontSize) td.style.fontSize = cellData.fontSize;
-		                if (cellData.fontColor) td.style.color = cellData.fontColor;
-		                if (cellData.fontWeight) td.style.fontWeight = cellData.fontWeight;
-		                if (cellData.fontStyle) td.style.fontStyle = cellData.fontStyle;
-		                if (cellData.textDecoration) td.style.textDecoration = cellData.textDecoration;
-
+		                // Marcar filas ocupadas por rowspan
 		                for (let i = 0; i < td.rowSpan; i++) {
 		                    if (r + i < rows) occupied[r + i][colIndex] = true;
 		                }
 
 		                td.dataset.colorIndex = 0;
 		                td.addEventListener('click', () => {
-		                    if (!colorClickActive) return;
 		                    let index = parseInt(td.dataset.colorIndex);
 		                    index = (index + 1) % cellColors.length;
 		                    td.style.backgroundColor = cellColors[index];
@@ -542,7 +309,7 @@
 		        rows_select.value = rows;
 		        columns_select.value = columns;
 
-		    } catch (e) {
+		    } catch(e) {
 		        alert("Codice non valido.");
 		    }
 		}
@@ -635,5 +402,65 @@
 		}
 
 	</script>
+
+	<!-- 🔥 Firebase SDKs -->
+		<script type="module">
+		  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+		  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+		  import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+
+		  // 🔧 Tus credenciales (reemplaza si las cambiamos antes)
+		  const firebaseConfig = {
+			  apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
+			  authDomain: "schedule-it-69420.firebaseapp.com",
+			  projectId: "schedule-it-69420",
+			  storageBucket: "schedule-it-69420.firebasestorage.app",
+			  messagingSenderId: "541795813911",
+			  appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
+			  measurementId: "G-K5BR2NTY3C"
+			};
+
+		  const app = initializeApp(firebaseConfig);
+		  const db = getFirestore(app);
+		  const storage = getStorage(app);
+
+		  // ✅ Reemplazamos la función tableToImage por esta versión
+		  window.tableToImage = async function() {
+		      const tableElement = document.getElementById('planner');
+
+		      // Crear cabecera temporal
+		      const tempHeader = document.createElement('div');
+		      tempHeader.style.textAlign = 'center';
+		      tempHeader.style.marginBottom = '10px';
+		      tempHeader.innerHTML = `<img src="cabecero.jpeg" alt="Cabecera" 
+		          style="max-width:100%; height:auto; display:block; margin:0 auto;">`;
+		      tableElement.parentElement.prepend(tempHeader);
+
+		      // Generar imagen con cabecera
+		      const canvas = await html2canvas(tableElement.parentElement, { scale: 2, backgroundColor: "#FFFFFF" });
+		      tempHeader.remove();
+		      const imgData = canvas.toDataURL('image/png');
+
+		      // Guardar localmente (por compatibilidad)
+		      localStorage.setItem('plannerImage', imgData);
+
+		      // 🔼 Subir imagen al Storage de Firebase
+		      const storageRef = ref(storage, 'planner/plannerImage.png');
+		      await uploadString(storageRef, imgData, 'data_url');
+
+		      // Obtener URL pública
+		      const downloadURL = await getDownloadURL(storageRef);
+
+		      // Guardar URL en Firestore (colección “planner”, documento “latestImage”)
+		      const docRef = doc(db, 'planner', 'latestImage');
+		      await setDoc(docRef, {
+		          url: downloadURL,
+		          updated: new Date().toISOString()
+		      });
+
+		      alert("✅ Imagen subida correctamente a Firebase y compartida online");
+		  }
+		</script>
+
 </body>
 </html>

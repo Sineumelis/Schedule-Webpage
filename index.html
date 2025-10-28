@@ -178,33 +178,47 @@
 		});
 
 		// Cargar la imagen de localStorage al cargar la página
-		/*window.addEventListener('load', () => {
+		window.addEventListener('load', () => {
 		    const data = localStorage.getItem('plannerImage');
 		    if (data) {
 		        image.src = data; 
 		    }
-		});*/
-
-		// 🔁 Restaurar la última tabla guardada desde Firestore al cargar la página
-		window.addEventListener('load', async () => {
-		    try {
-		        const snapshot = await docRef.get();
-		        if (snapshot.exists && snapshot.data().tableJson) {
-		            const tableData = snapshot.data().tableJson;
-		            document.getElementById('loadCode').value = JSON.stringify(tableData);
-		            loadTableFromCode(); // reconstruye automáticamente
-
-		            if (snapshot.data().code) {
-		                document.getElementById('tableCode').value = snapshot.data().code;
-		            }
-
-		            showNotification("Tabla restaurada desde Firestore ✅", 2500);
-		        }
-		    } catch (err) {
-		        console.error("Error restaurando tabla:", err);
-		    }
 		});
-
 </script>
+
+<!-- 🔥 Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  // 🔧 Tus credenciales (las mismas)
+  const firebaseConfig = {
+      		  apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
+			  authDomain: "schedule-it-69420.firebaseapp.com",
+			  projectId: "schedule-it-69420",
+			  storageBucket: "schedule-it-69420.firebasestorage.app",
+			  messagingSenderId: "541795813911",
+			  appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
+			  measurementId: "G-K5BR2NTY3C"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const image = document.getElementById('toggle_image');
+
+  // 🔄 Escuchar en tiempo real los cambios del documento en Firestore
+  const docRef = doc(db, 'planner', 'latestImage');
+  onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+          const data = snapshot.data();
+          image.src = data.url;
+      } else {
+          console.log("No existe aún ninguna imagen en Firestore");
+      }
+  });
+</script>
+
+
 </body>
 </html>
