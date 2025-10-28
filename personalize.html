@@ -424,8 +424,10 @@
 
 		async function tableToImage() {
 		    try {
+		        // En lugar de capturar solo la tabla, capturamos toda la cabecera + tabla
 		        const wrapperElement = document.getElementById('plannerWrapper');
-				const canvas = await html2canvas(wrapperElement, { scale: 2, backgroundColor: null });
+		        const canvas = await html2canvas(wrapperElement, { scale: 2, backgroundColor: "#FFFFFF" });
+
 
 		        const imgData = canvas.toDataURL('image/png');
 
