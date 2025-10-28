@@ -428,57 +428,67 @@
 	</script>
 
 	<script type="module">
-		import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-		import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-		import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+	  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+	  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-		const firebaseConfig = {
-		  apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
-		  authDomain: "schedule-it-69420.firebaseapp.com",
-		  projectId: "schedule-it-69420",
-		  storageBucket: "schedule-it-69420.appspot.com",
-		  messagingSenderId: "541795813911",
-		  appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
-		  measurementId: "G-K5BR2NTY3C"
-		};
+	  const firebaseConfig = {
+	    apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
+	    authDomain: "schedule-it-69420.firebaseapp.com",
+	    projectId: "schedule-it-69420",
+	    storageBucket: "schedule-it-69420.appspot.com",
+	    messagingSenderId: "541795813911",
+	    appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
+	    measurementId: "G-K5BR2NTY3C"
+	  };
 
-		const app = initializeApp(firebaseConfig);
-		const db = getFirestore(app);
-		const storage = getStorage(app);
+	  const app = initializeApp(firebaseConfig);
+	  const db = getFirestore(app);
 
-		window.tableToImage = async function() {
-		  const tableElement = document.getElementById('planner');
-		  if (!tableElement || tableElement.rows.length === 0) {
-		    alert("⚠️ La tabla está vacía o no existe.");
-		    return;
-		  }
+	  window.tableToImage = async function () {
+	    const table = document.getElementById('planner');
+	    if (!table) return;
 
-		  // Generar la imagen
-		  const canvas = await html2canvas(tableElement, { scale: 2, backgroundColor: "#FFFFFF" });
-		  const imgData = canvas.toDataURL('image/png');
+	    const rows = table.rows.length;
+	    const columns = table.rows[0]?.cells.length || 0;
+	    const cells = [];
+	    const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
 
-		  // 🧠 Crear un nombre único por fecha
-		  const timestamp = Date.now();
-		  const filePath = `planner/plannerImage_${timestamp}.png`;
+	    for (let r = 0; r < rows; r++) {
+	      cells[r] = [];
+	      let colIndex = 0;
+	      const tr = table.rows[r];
 
-		  // 📤 Subir al Storage
-		  const storageRef = ref(storage, filePath);
-		  await uploadString(storageRef, imgData, 'data_url');
+	      for (let ci = 0; ci < tr.cells.length; ci++) {
+	        while (occupied[r][colIndex]) colIndex++;
 
-		  // 🔗 Obtener la URL pública
-		  const downloadURL = await getDownloadURL(storageRef);
+	        const td = tr.cells[ci];
+	        cells[r][colIndex] = {
+	          text: td.innerHTML, // guarda el contenido con formato
+	          color: td.style.backgroundColor || "#FFFFFF",
+	          rowspan: td.rowSpan || 1
+	        };
 
-		  // 🗃️ Actualizar Firestore con nueva URL y fecha
-		  const docRef = doc(db, 'planner', 'latestImage');
-		  await setDoc(docRef, {
-		    url: downloadURL,
-		    updated: new Date().toISOString(),
-		    file: filePath
-		  });
+	        for (let i = 0; i < td.rowSpan; i++) {
+	          if (r + i < rows) occupied[r + i][colIndex] = true;
+	        }
 
-		  alert("✅ Imagen subida correctamente y sincronizada con Firestore.");
-		};
+	        colIndex++;
+	      }
+	    }
+
+	    // 📦 Guarda la tabla en Firestore (colección 'planner', documento 'latestTable')
+	    const docRef = doc(db, "planner", "latestTable");
+	    await setDoc(docRef, {
+	      rows,
+	      columns,
+	      cells,
+	      updated: new Date().toISOString()
+	    });
+
+	    alert("✅ Tabla guardada correctamente en Firestore");
+	  };
 	</script>
+
 
 
 
