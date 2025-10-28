@@ -448,28 +448,38 @@
 
 		window.tableToImage = async function() {
 		  const tableElement = document.getElementById('planner');
-		  if (!tableElement) return;
+		  if (!tableElement || tableElement.rows.length === 0) {
+		    alert("⚠️ La tabla está vacía o no existe.");
+		    return;
+		  }
 
+		  // Generar la imagen
 		  const canvas = await html2canvas(tableElement, { scale: 2, backgroundColor: "#FFFFFF" });
 		  const imgData = canvas.toDataURL('image/png');
 
-		  // 📤 Subir a Firebase Storage
-		  const storageRef = ref(storage, 'planner/plannerImage.png');
+		  // 🧠 Crear un nombre único por fecha
+		  const timestamp = Date.now();
+		  const filePath = `planner/plannerImage_${timestamp}.png`;
+
+		  // 📤 Subir al Storage
+		  const storageRef = ref(storage, filePath);
 		  await uploadString(storageRef, imgData, 'data_url');
 
-		  // 🔗 Obtener URL pública
+		  // 🔗 Obtener la URL pública
 		  const downloadURL = await getDownloadURL(storageRef);
 
-		  // 🗃️ Guardar URL en Firestore
+		  // 🗃️ Actualizar Firestore con nueva URL y fecha
 		  const docRef = doc(db, 'planner', 'latestImage');
 		  await setDoc(docRef, {
 		    url: downloadURL,
-		    updated: new Date().toISOString()
+		    updated: new Date().toISOString(),
+		    file: filePath
 		  });
 
-		  alert("✅ Imagen subida correctamente a Firebase");
+		  alert("✅ Imagen subida correctamente y sincronizada con Firestore.");
 		};
-		</script>
+	</script>
+
 
 
 </body>
