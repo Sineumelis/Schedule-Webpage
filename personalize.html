@@ -429,8 +429,9 @@
 
 	<script type="module">
 	  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-	  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+	  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
+	  // 🔧 Configuración de tu proyecto Firebase
 	  const firebaseConfig = {
 	    apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
 	    authDomain: "schedule-it-69420.firebaseapp.com",
@@ -444,9 +445,10 @@
 	  const app = initializeApp(firebaseConfig);
 	  const db = getFirestore(app);
 
+	  // 🧠 Función para GUARDAR la tabla
 	  window.tableToImage = async function () {
 	    const table = document.getElementById('planner');
-	    if (!table) return;
+	    if (!table) return alert("No hay tabla para guardar.");
 
 	    const rows = table.rows.length;
 	    const columns = table.rows[0]?.cells.length || 0;
@@ -460,35 +462,76 @@
 
 	      for (let ci = 0; ci < tr.cells.length; ci++) {
 	        while (occupied[r][colIndex]) colIndex++;
-
 	        const td = tr.cells[ci];
 	        cells[r][colIndex] = {
-	          text: td.innerHTML, // guarda el contenido con formato
+	          text: td.innerHTML,
 	          color: td.style.backgroundColor || "#FFFFFF",
 	          rowspan: td.rowSpan || 1
 	        };
-
 	        for (let i = 0; i < td.rowSpan; i++) {
 	          if (r + i < rows) occupied[r + i][colIndex] = true;
 	        }
-
 	        colIndex++;
 	      }
 	    }
 
-	    // 📦 Guarda la tabla en Firestore (colección 'planner', documento 'latestTable')
-	    const docRef = doc(db, "planner", "latestTable");
-	    await setDoc(docRef, {
-	      rows,
-	      columns,
-	      cells,
-	      updated: new Date().toISOString()
-	    });
+	    try {
+	      await setDoc(doc(db, "planner", "latestTable"), {
+	        rows,
+	        columns,
+	        cells,
+	        updated: new Date().toISOString()
+	      });
+	      alert("✅ Tabla guardada correctamente en Firestore.");
+	    } catch (e) {
+	      console.error("Error al guardar en Firestore:", e);
+	      alert("❌ Error al guardar en Firestore. Mira la consola.");
+	    }
+	  };
 
-	    alert("✅ Tabla guardada correctamente en Firestore");
+	  // 🔄 Función para CARGAR la tabla guardada
+	  window.loadFromFirestore = async function () {
+	    try {
+	      const docRef = doc(db, "planner", "latestTable");
+	      const snapshot = await getDoc(docRef);
+	      if (snapshot.exists()) {
+	        const data = snapshot.data();
+	        console.log("📥 Datos cargados:", data);
+
+	        // Reconstruir tabla visual
+	        const table = document.getElementById("planner");
+	        table.innerHTML = '';
+	        const { rows, columns, cells } = data;
+	        const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
+
+	        for (let r = 0; r < rows; r++) {
+	          const tr = table.insertRow();
+	          let colIndex = 0;
+	          while (colIndex < columns) {
+	            if (occupied[r][colIndex]) { colIndex++; continue; }
+	            const cellData = cells[r][colIndex];
+	            const td = tr.insertCell();
+	            td.contentEditable = "true";
+	            td.innerHTML = cellData.text;
+	            td.style.backgroundColor = cellData.color;
+	            if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
+	            for (let i = 0; i < td.rowSpan; i++) {
+	              if (r + i < rows) occupied[r + i][colIndex] = true;
+	            }
+	            colIndex++;
+	          }
+	        }
+
+	        alert("✅ Tabla cargada desde Firestore.");
+	      } else {
+	        alert("⚠️ No hay datos guardados todavía.");
+	      }
+	    } catch (e) {
+	      console.error("Error al cargar Firestore:", e);
+	      alert("❌ Error al cargar Firestore. Mira la consola.");
+	    }
 	  };
 	</script>
-
 
 
 
