@@ -149,12 +149,12 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 	<!-- Firebase App -->
-	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+	<!--<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>-->
 	<!-- Firebase Firestore -->
-	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+	<!--<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>-->
 
-	
-	<script>
+
+	<!--<script>
 	// Configuración de Firebase (cambia con tus datos)
 	const firebaseConfig = {
 	    apiKey: "TU_API_KEY",
@@ -168,6 +168,30 @@
 	// Inicializar Firebase
 	firebase.initializeApp(firebaseConfig);
 	const db = firebase.firestore();
+	</script>-->
+
+	<script>
+		// Import the functions you need from the SDKs you need
+		import { initializeApp } from "firebase/app";
+		import { getAnalytics } from "firebase/analytics";
+		// TODO: Add SDKs for Firebase products that you want to use
+		// https://firebase.google.com/docs/web/setup#available-libraries
+
+		// Your web app's Firebase configuration
+		// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+		const firebaseConfig = {
+		  apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
+		  authDomain: "schedule-it-69420.firebaseapp.com",
+		  projectId: "schedule-it-69420",
+		  storageBucket: "schedule-it-69420.firebasestorage.app",
+		  messagingSenderId: "541795813911",
+		  appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
+		  measurementId: "G-K5BR2NTY3C"
+		};
+
+		// Initialize Firebase
+		const app = initializeApp(firebaseConfig);
+		const analytics = getAnalytics(app);
 	</script>
 
 
