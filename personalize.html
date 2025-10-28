@@ -116,7 +116,15 @@
 
 	    <label>Misurare:
 		    <input list="fontSizes" id="fontSizeInput" type="number" min="1" value="16" onchange="applyFontSize()">
-		    
+		    <!--<datalist id="fontSizes">
+		        <option value="8">
+		        <option value="10">
+		        <option value="12">
+		        <option value="14">
+		        <option value="18">
+		        <option value="24">
+		        <option value="32">
+		    </datalist>-->
 		</label>
 
 
@@ -139,6 +147,29 @@
 	<table id="planner"></table>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+	<!-- Firebase App -->
+	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+	<!-- Firebase Firestore -->
+	<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+	
+	<script>
+	// Configuración de Firebase (cambia con tus datos)
+	const firebaseConfig = {
+	    apiKey: "TU_API_KEY",
+	    authDomain: "TU_PROYECTO.firebaseapp.com",
+	    projectId: "TU_PROYECTO",
+	    storageBucket: "TU_PROYECTO.appspot.com",
+	    messagingSenderId: "TU_SENDER_ID",
+	    appId: "TU_APP_ID"
+	};
+
+	// Inicializar Firebase
+	firebase.initializeApp(firebaseConfig);
+	const db = firebase.firestore();
+	</script>
+
 
 <!-- Save Existing Data is needed -->
 	<script>
@@ -223,8 +254,21 @@
 		    html2canvas(tableElement, { scale: 2, backgroundColor: null })
 		    .then(canvas => {
 		        const imgData = canvas.toDataURL('image/png');
+
+		        // Guardar localmente
 		        localStorage.setItem('plannerImage', imgData);
 
+		        // Guardar en Firestore
+		        db.collection("planner").doc("latest").set({
+		            imageBase64: imgData,
+		            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+		        }).then(() => {
+		            console.log("Imagen guardada en Firestore ✅");
+		        }).catch(err => {
+		            console.error("Error guardando en Firestore:", err);
+		        });
+
+		        // Guardar código de la tabla como antes
 		        const rows = table.rows.length;
 		        const columns = table.rows[0]?.cells.length || 0;
 		        const cells = [];
@@ -236,24 +280,19 @@
 		            const tr = table.rows[r];
 
 		            for (let ci = 0; ci < tr.cells.length; ci++) {
-
 		                while (occupied[r][colIndex]) colIndex++;
-
 		                const td = tr.cells[ci];
 		                cells[r][colIndex] = {
 		                    text: td.textContent,
 		                    color: td.style.backgroundColor || "#FFFFFF",
 		                    rowspan: td.rowSpan || 1
 		                };
-
 		                for (let i = 0; i < td.rowSpan; i++) {
 		                    if (r + i < rows) occupied[r + i][colIndex] = true;
 		                }
-
 		                colIndex++;
 		            }
 		        }
-
 		        document.getElementById('tableCode').value = JSON.stringify({ rows, columns, cells });
 		    });
 		}

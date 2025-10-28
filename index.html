@@ -178,16 +178,31 @@
 		});
 
 		// Cargar la imagen de localStorage al cargar la página
-		window.addEventListener('load', () => {
+		/*window.addEventListener('load', () => {
 		    const data = localStorage.getItem('plannerImage');
 		    if (data) {
 		        image.src = data; 
 		    }
+		});*/
+
+		window.addEventListener('load', () => {
+	    // Primero carga la imagen local si existe
+	    const data = localStorage.getItem('plannerImage');
+	    if (data) {
+	        image.src = data; 
+	    }
+
+	    // Luego intenta cargar la última imagen desde Firestore
+	    db.collection("planner").doc("latest")
+	      .get()
+	      .then(doc => {
+	          if (doc.exists) {
+	              const data = doc.data();
+	              document.getElementById('toggle_image').src = data.imageBase64;
+	          }
+	      })
+	      .catch(err => console.error("Error leyendo Firestore:", err));
 		});
 </script>
-
-
-	</script>
-
 </body>
 </html>
