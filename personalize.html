@@ -6,549 +6,326 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Personalizza Tabella</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Personalizza Tabella</title>
 
-	<style>
-		body {
-    		font-family: Arial, sans-serif;
-    		padding: 20px;
-   	 		background-color: #f0f0f0;
-  		}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
 
-  		select, button{
-  			padding: 5px, 10px;
-  			margin-right: 10px;
-  			margin-left: 20px;
-  		}
+    select, button {
+      padding: 5px 10px;
+      margin-right: 10px;
+      margin-left: 20px;
+    }
 
-  		table{
-  			border-collapse: collapse;
-  			width: 100%;
-  			max-width: 1600px;
-  			background-color: #fff;
-  		}
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 1600px;
+      background-color: #fff;
+    }
 
-  		table, th, td {
-  			border: 1px solid #828282;
-  		}
+    table, th, td {
+      border: 1px solid #828282;
+    }
 
-  		td {
-  			width: 120px;
-  			height: 70px;
-  			text-align: center;
-  			vertical-align: middle;
-  			cursor: text;
-  		}
+    td {
+      width: 120px;
+      height: 70px;
+      text-align: center;
+      vertical-align: middle;
+      cursor: text;
+    }
 
-  		td:focus{
-  			outline: 2px solid #007bff;
-  		}
-	</style>
+    td:focus {
+      outline: 2px solid #007bff;
+    }
+  </style>
 </head>
 <body>
-	<h1>Ciao</h1>
-
-	<label>
-		Lines:
-		<select id="rows_selected">
-			<option value="1">1</option>
-			<option value="2">2</option>
-			<option value="3">3</option>
-			<option value="4">4</option>
-			<option value="5">5</option>
-			<option value="6">6</option>
-			<option value="7">7</option>
-			<option value="8">8</option>
-			<option value="9">9</option>
-			<option value="10">10</option>
-			<option value="11">11</option>
-			<option value="12">12</option>
-		</select>
-	</label>
-
-	<label>
-		Columns:
-		<select id="columns_selected">
-			<option value="1">1</option>
-			<option value="2">2</option>
-			<option value="3">3</option>
-			<option value="4">4</option>
-			<option value="5">5</option>
-			<option value="6">6</option>
-			<option value="7">7</option>
-			<option value="8">8</option>
-			<option value="9">9</option>
-			<option value="10">10</option>
-			<option value="11">11</option>
-			<option value="12">12</option>
-		</select>
-	</label>
-
-	<button onclick="tableToImage()">Generate Image</button>
-
-	<br><br>
-
-	<label>Codice della Tabella:</label><br>
-	<textarea id="tableCode" rows="5" cols="50" readonly placeholder="Table's code"></textarea>
-	<button onclick="copyTableCode()">Copy Code</button>
-
-	<br><br>
-
-	<!-- <input type="text" id="loadCode" placeholder="Paste code here"> -->
-	<label>Inserisci il Codice della Tabella:</label><br>
-	<textarea id="loadCode" rows="5" cols="50" placeholder="Paste code here"></textarea>
-
-	<button onclick="loadTableFromCode()">Load table</button>
-
-	<br><br>
-
-	<div id="editorControls">
-	    <label>Lettera:
-	        <select id="fontSelect" onchange="applyFont()">
-	            <option value="Arial">Arial</option>
-	            <option value="Courier New">Courier New</option>
-	            <option value="Times New Roman">Times New Roman</option>
-	            <option value="Verdana">Verdana</option>
-	        </select>
-	    </label>
-
-	    <label>Misurare:
-		    <input list="fontSizes" id="fontSizeInput" type="number" min="1" value="16" onchange="applyFontSize()">
-		    
-		</label>
-
-
-	    <button onclick="execCmd('bold')"><b>B</b></button>
-	    <button onclick="execCmd('italic')"><i>I</i></button>
-	    <button onclick="execCmd('underline')"><u>U</u></button>
-	    <input type="color" id="fontColor" onchange="applyColor()" value="#000000">
-	    <button onclick="applyCellStyle()">Applicare</button>
-
-	</div>
-
-	<br>
-
-	<button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
-
-	<br>
-
-	<br>
-
-	<button onclick="loadFromFirestore()">Cargar desde Firestore</button>
-
-
-	<table id="planner"></table>
-
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-<!-- Save Existing Data is needed -->
-	<script>
-		const table = document.getElementById('planner')
-		const rows_select = document.getElementById('rows_selected');
-		const columns_select = document.getElementById('columns_selected');
-
-		const cellColors = ["#ADD8E6", "#B0C4DE", "#FFB6C1", "#FFA500", "#90EE90", "#FFFFFF"];
-
-		let activeCell = null;
-
-		let colorClickActive = false;
-
-		function createTable(rows, columns){
-			const oldData = [];
-
-			for (let r = 0; r < table.rows.length; r++) {
-
-    			oldData[r] = [];
-    			
-    			for (let c = 0; c < table.rows[r].cells.length; c++) {
-
-        			oldData[r][c] = {
-        				text: table.rows[r].cells[c].textContent,
-                		color: table.rows[r].cells[c].style.backgroundColor || "#FFFFFF",
-                		rowspan: table.rows[r].cells[c].rowSpan || 1
-        			};
-
-    			}
-			}
-
-			table.innerHTML = '';
-
-			for (let r=0; r < rows; r++){
-
-				const tr = table.insertRow();
-
-				for (let c = 0; c < columns; c++){
-
-					if (r > 0 && c == 0 && table.rows[r - 1]?.cells[0]?.rowSpan == 2) continue;
-
-					const td = tr.insertCell();
-					td.contentEditable = "true";
-
-					td.addEventListener('focus', () => {
-					    activeCell = td;
-					});
-
-					if (c == 0 && r % 2 == 0 && r + 1 < rows){
-						td.rowSpan = 2;
-					}
-
-					if (oldData[r] && oldData[r][c] !== undefined){
-						td.textContent = oldData[r][c].text;
-						td.style.backgroundColor = oldData[r][c].color;
-					}
-
-					td.dataset.colorIndex = 0;
-        			td.addEventListener('click', () => {
-        				if (!colorClickActive) return;
-            			let index = parseInt(td.dataset.colorIndex);
-            			index = (index + 1) % cellColors.length;
-            			td.style.backgroundColor = cellColors[index];
-            			td.dataset.colorIndex = index;
-        			});
-				}
-		}
-	}
-
-		rows_select.addEventListener('change', () => {
-			createTable(parseInt(rows_select.value), table.rows[0]?.cells.length || 1);
-		});
-		columns_select.addEventListener('change', () => {
-			createTable(table.rows.length || 1, parseInt(columns_select.value));
-		});
-
-		createTable(1,1);
-
-		/*function tableToImage() {
-		    const tableElement = document.getElementById('planner');
-
-		    html2canvas(tableElement, { scale: 2, backgroundColor: null })
-		    .then(canvas => {
-		        const imgData = canvas.toDataURL('image/png');
-		        localStorage.setItem('plannerImage', imgData);
-
-		        const rows = table.rows.length;
-		        const columns = table.rows[0]?.cells.length || 0;
-		        const cells = [];
-		        const occupied = Array.from({length: rows}, () => Array(columns).fill(false));
-
-		        for (let r = 0; r < rows; r++) {
-		            cells[r] = [];
-		            let colIndex = 0;
-		            const tr = table.rows[r];
-
-		            for (let ci = 0; ci < tr.cells.length; ci++) {
-
-		                while (occupied[r][colIndex]) colIndex++;
-
-		                const td = tr.cells[ci];
-		                cells[r][colIndex] = {
-		                    text: td.textContent,
-		                    color: td.style.backgroundColor || "#FFFFFF",
-		                    rowspan: td.rowSpan || 1
-		                };
-
-		                for (let i = 0; i < td.rowSpan; i++) {
-		                    if (r + i < rows) occupied[r + i][colIndex] = true;
-		                }
-
-		                colIndex++;
-		            }
-		        }
-
-		        document.getElementById('tableCode').value = JSON.stringify({ rows, columns, cells });
-		    });
-		}*/
-
-		/*async function tableToImage() {
-		    const tableElement = document.getElementById('planner');
-		    if (!tableElement) return;
-
-		    // Generar la imagen como antes
-		    const canvas = await html2canvas(tableElement, { scale: 2, backgroundColor: "#FFFFFF" });
-		    const imgData = canvas.toDataURL('image/png');
-		    localStorage.setItem('plannerImage', imgData);
-
-		    // Subir a Firebase
-		    const storageRef = ref(storage, 'planner/plannerImage.png');
-		    await uploadString(storageRef, imgData, 'data_url');
-		    const downloadURL = await getDownloadURL(storageRef);
-
-		    const docRef = doc(db, 'planner', 'latestImage');
-		    await setDoc(docRef, {
-		        url: downloadURL,
-		        updated: new Date().toISOString()
-		    });
-
-		    alert("✅ Imagen subida correctamente a Firebase y compartida online");
-		}*/
-
-
-
-
-		function loadTableFromCode() {
-		    const code = document.getElementById('loadCode').value;
-		    if (!code) return;
-
-		    try {
-		        const obj = JSON.parse(code);
-		        const { rows, columns, cells } = obj;
-
-		        table.innerHTML = '';
-		        const occupied = Array.from({length: rows}, () => Array(columns).fill(false));
-
-		        for (let r = 0; r < rows; r++) {
-		            const tr = table.insertRow();
-		            let colIndex = 0;
-
-		            while (colIndex < columns) {
-		                // Saltar columnas ocupadas
-		                if (occupied[r][colIndex]) {
-		                    colIndex++;
-		                    continue;
-		                }
-
-		                const cellData = cells[r][colIndex] || { text: '', color: '#FFFFFF', rowspan: 1 };
-		                const td = tr.insertCell();
-		                td.contentEditable = "true";
-		                td.textContent = cellData.text;
-		                td.style.backgroundColor = cellData.color;
-		                if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
-
-		                // Marcar filas ocupadas por rowspan
-		                for (let i = 0; i < td.rowSpan; i++) {
-		                    if (r + i < rows) occupied[r + i][colIndex] = true;
-		                }
-
-		                td.dataset.colorIndex = 0;
-		                td.addEventListener('click', () => {
-		                    let index = parseInt(td.dataset.colorIndex);
-		                    index = (index + 1) % cellColors.length;
-		                    td.style.backgroundColor = cellColors[index];
-		                    td.dataset.colorIndex = index;
-		                });
-
-		                colIndex++;
-		            }
-		        }
-
-		        rows_select.value = rows;
-		        columns_select.value = columns;
-
-		    } catch(e) {
-		        alert("Codice non valido.");
-		    }
-		}
-
-
-		function copyTableCode() {
-    		const codeTextarea = document.getElementById('tableCode');
-    		const code = codeTextarea.value;
-
-    		if (!code) return;
-
-    		navigator.clipboard.writeText(code);
-		}
-
-		function execCmd(command) {
-		    if (!activeCell) return;
-
-		    activeCell.focus();
-		    document.execCommand(command, false, null);
-		}
-
-		function applyFont() {
-		    const font = document.getElementById('fontSelect').value;
-		    document.execCommand('fontName', false, font);
-		}
-
-		function applyFontSize() {
-		    const size = document.getElementById('fontSizeInput').value;
-
-		    document.execCommand('fontSize', false, 3); 
-		    const selection = window.getSelection();
-		    if (!selection.rangeCount) return;
-
-
-		    const span = document.createElement('span');
-		    span.style.fontSize = size + 'px';
-		    span.innerHTML = selection.toString();
-
-		    const range = selection.getRangeAt(0);
-		    range.deleteContents();
-		    range.insertNode(span);
-		}
-
-
-		function applyColor() {
-		    const color = document.getElementById('fontColor').value;
-		    document.execCommand('foreColor', false, color);
-		}
-
-		function applyCellStyle() {
-		    if (!activeCell) return;
-
-		    const font = document.getElementById('fontSelect').value;
-		    const size = document.getElementById('fontSizeInput').value + 'px';
-		    const color = document.getElementById('fontColor').value;
-
-		    // Revisamos si hay selección de texto dentro de la celda
-		    const selection = window.getSelection();
-		    if (!selection.rangeCount) {
-
-		        activeCell.style.fontFamily = font;
-		        activeCell.style.fontSize = size;
-		        activeCell.style.color = color;
-		        return;
-		    }
-
-		    const range = selection.getRangeAt(0);
-
-		    if (!activeCell.contains(range.commonAncestorContainer)) {
-		        alert("Selecciona texto dentro de la celda activa.");
-		        return;
-		    }
-
-		    const span = document.createElement('span');
-		    span.style.fontFamily = font;
-		    span.style.fontSize = size;
-		    span.style.color = color;
-		    span.innerHTML = selection.toString();
-
-		    range.deleteContents();
-		    range.insertNode(span);
-
-		    selection.removeAllRanges();
-		}
-
-		function toggleColorMode() {
-		    colorClickActive = !colorClickActive;
-		    const btn = document.getElementById('toggleColorModeBtn');
-		    btn.textContent = colorClickActive ? "Disabilitare colore" : "Attivare colore";
-		}
-
-	</script>
-
-	<script type="module">
-	  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-	  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-
-	  // 🔧 Configuración de tu proyecto Firebase
-	  const firebaseConfig = {
-	    apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
-	    authDomain: "schedule-it-69420.firebaseapp.com",
-	    projectId: "schedule-it-69420",
-	    storageBucket: "schedule-it-69420.appspot.com",
-	    messagingSenderId: "541795813911",
-	    appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
-	    measurementId: "G-K5BR2NTY3C"
-	  };
-
-	  const app = initializeApp(firebaseConfig);
-	  const db = getFirestore(app);
-
-	  // 🧠 Función para GUARDAR la tabla
-	  // 🧠 Función para GUARDAR la tabla (sin arrays anidados)
-window.tableToImage = async function () {
-  const table = document.getElementById('planner');
-  if (!table) return alert("No hay tabla para guardar.");
-
-  const rows = table.rows.length;
-  const columns = table.rows[0]?.cells.length || 0;
-  const cellList = [];
-
-  const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
-
-  for (let r = 0; r < rows; r++) {
-    let colIndex = 0;
-    const tr = table.rows[r];
-
-    for (let ci = 0; ci < tr.cells.length; ci++) {
-      while (occupied[r][colIndex]) colIndex++;
-
-      const td = tr.cells[ci];
-      cellList.push({
-        row: r,
-        col: colIndex,
-        text: td.innerHTML,
-        color: td.style.backgroundColor || "#FFFFFF",
-        rowspan: td.rowSpan || 1
-      });
-
-      for (let i = 0; i < td.rowSpan; i++) {
-        if (r + i < rows) occupied[r + i][colIndex] = true;
+  <h1>Ciao</h1>
+
+  <label>
+    Lines:
+    <select id="rows_selected">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+    </select>
+  </label>
+
+  <label>
+    Columns:
+    <select id="columns_selected">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+    </select>
+  </label>
+
+  <button onclick="tableToImage()">Generate Image</button>
+
+  <br><br>
+
+  <label>Codice della Tabella:</label><br>
+  <textarea id="tableCode" rows="5" cols="50" readonly placeholder="Table's code"></textarea>
+  <button onclick="copyTableCode()">Copy Code</button>
+
+  <br><br>
+
+  <label>Inserisci il Codice della Tabella:</label><br>
+  <textarea id="loadCode" rows="5" cols="50" placeholder="Paste code here"></textarea>
+  <button onclick="loadTableFromCode()">Load table</button>
+
+  <br><br>
+
+  <div id="editorControls">
+    <label>Lettera:
+      <select id="fontSelect" onchange="applyFont()">
+        <option value="Arial">Arial</option>
+        <option value="Courier New">Courier New</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Verdana">Verdana</option>
+      </select>
+    </label>
+
+    <label>Misurare:
+      <input list="fontSizes" id="fontSizeInput" type="number" min="1" value="16" onchange="applyFontSize()">
+    </label>
+
+    <button onclick="execCmd('bold')"><b>B</b></button>
+    <button onclick="execCmd('italic')"><i>I</i></button>
+    <button onclick="execCmd('underline')"><u>U</u></button>
+    <input type="color" id="fontColor" onchange="applyColor()" value="#000000">
+    <button onclick="applyCellStyle()">Applicare</button>
+  </div>
+
+  <br>
+  <button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
+
+  <br><br>
+  <button onclick="loadFromFirestore()">Cargar desde Firestore</button>
+
+  <table id="planner"></table>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
+      authDomain: "schedule-it-69420.firebaseapp.com",
+      projectId: "schedule-it-69420",
+      storageBucket: "schedule-it-69420.appspot.com",
+      messagingSenderId: "541795813911",
+      appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
+      measurementId: "G-K5BR2NTY3C"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const table = document.getElementById('planner');
+    const rows_select = document.getElementById('rows_selected');
+    const columns_select = document.getElementById('columns_selected');
+
+    const cellColors = ["#ADD8E6", "#B0C4DE", "#FFB6C1", "#FFA500", "#90EE90", "#FFFFFF"];
+    let activeCell = null;
+    let colorClickActive = false;
+
+    function createTable(rows, columns) {
+      const oldData = [];
+      for (let r = 0; r < table.rows.length; r++) {
+        oldData[r] = [];
+        for (let c = 0; c < table.rows[r].cells.length; c++) {
+          oldData[r][c] = {
+            text: table.rows[r].cells[c].innerHTML,
+            color: table.rows[r].cells[c].style.backgroundColor || "#FFFFFF",
+            rowspan: table.rows[r].cells[c].rowSpan || 1
+          };
+        }
       }
-      colIndex++;
+
+      table.innerHTML = '';
+      for (let r = 0; r < rows; r++) {
+        const tr = table.insertRow();
+        for (let c = 0; c < columns; c++) {
+          if (r > 0 && c == 0 && table.rows[r - 1]?.cells[0]?.rowSpan == 2) continue;
+
+          const td = tr.insertCell();
+          td.contentEditable = "true";
+
+          td.addEventListener('focus', () => activeCell = td);
+
+          if (c == 0 && r % 2 == 0 && r + 1 < rows) td.rowSpan = 2;
+
+          if (oldData[r] && oldData[r][c] !== undefined) {
+            td.innerHTML = oldData[r][c].text;
+            td.style.backgroundColor = oldData[r][c].color;
+          }
+
+          td.dataset.colorIndex = 0;
+          td.addEventListener('click', () => {
+            if (!colorClickActive) return;
+            let index = parseInt(td.dataset.colorIndex);
+            index = (index + 1) % cellColors.length;
+            td.style.backgroundColor = cellColors[index];
+            td.dataset.colorIndex = index;
+          });
+        }
+      }
     }
-  }
 
-  try {
-    await setDoc(doc(db, "planner", "latestTable"), {
-      rows,
-      columns,
-      cells: cellList, // ✅ lista plana
-      updated: new Date().toISOString()
-    });
-    alert("✅ Tabla guardada correctamente en Firestore.");
-  } catch (e) {
-    console.error("Error al guardar en Firestore:", e);
-    alert("❌ Error al guardar en Firestore. Mira la consola.");
-  }
-};
+    rows_select.addEventListener('change', () => createTable(parseInt(rows_select.value), table.rows[0]?.cells.length || 1));
+    columns_select.addEventListener('change', () => createTable(table.rows.length || 1, parseInt(columns_select.value)));
 
-	// 🔄 Función para CARGAR la tabla guardada (reconstruye desde lista)
-	window.loadFromFirestore = async function () {
-	  try {
-	    const docRef = doc(db, "planner", "latestTable");
-	    const snapshot = await getDoc(docRef);
-	    if (snapshot.exists()) {
-	      const data = snapshot.data();
-	      console.log("📥 Datos cargados:", data);
+    createTable(1, 1);
 
-	      const table = document.getElementById("planner");
-	      table.innerHTML = '';
+    // 🚀 Generar tabla + imagen y guardar en Firestore
+    window.tableToImage = async function() {
+      if (!table) return alert("No hay tabla para guardar.");
 
-	      const { rows, columns, cells } = data;
-	      const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
+      const rows = table.rows.length;
+      const columns = table.rows[0]?.cells.length || 0;
 
-	      for (let r = 0; r < rows; r++) {
-	        const tr = table.insertRow();
-	        for (let c = 0; c < columns; c++) {
-	          if (occupied[r][c]) continue;
-	          const cellData = cells.find(cell => cell.row === r && cell.col === c);
-	          if (!cellData) {
-	            const td = tr.insertCell();
-	            td.contentEditable = "true";
-	            td.innerHTML = "";
-	            td.style.backgroundColor = "#FFFFFF";
-	            continue;
-	          }
+      const cellList = [];
+      const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
 
-	          const td = tr.insertCell();
-	          td.contentEditable = "true";
-	          td.innerHTML = cellData.text;
-	          td.style.backgroundColor = cellData.color;
-	          if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
+      for (let r = 0; r < rows; r++) {
+        let colIndex = 0;
+        const tr = table.rows[r];
 
-	          for (let i = 0; i < td.rowSpan; i++) {
-	            if (r + i < rows) occupied[r + i][c] = true;
-	          }
-	        }
-	      }
+        for (let ci = 0; ci < tr.cells.length; ci++) {
+          while (occupied[r][colIndex]) colIndex++;
 
-	      alert("✅ Tabla cargada desde Firestore.");
-	    } else {
-	      alert("⚠️ No hay datos guardados todavía.");
-	    }
-	  } catch (e) {
-	    console.error("Error al cargar Firestore:", e);
-	    alert("❌ Error al cargar Firestore. Mira la consola.");
-	  }
-	};
-	</script>
+          const td = tr.cells[ci];
+          cellList.push({
+            row: r,
+            col: colIndex,
+            text: td.innerHTML,
+            color: td.style.backgroundColor || "#FFFFFF",
+            rowspan: td.rowSpan || 1
+          });
 
+          for (let i = 0; i < td.rowSpan; i++) {
+            if (r + i < rows) occupied[r + i][colIndex] = true;
+          }
+          colIndex++;
+        }
+      }
 
+      try {
+        // Guardar tabla
+        await setDoc(doc(db, "planner", "latestTable"), {
+          rows,
+          columns,
+          cells: cellList,
+          updated: new Date().toISOString()
+        });
+
+        // Guardar imagen base64
+        const canvas = await html2canvas(table, { scale: 2, backgroundColor: "#FFFFFF" });
+        const imgData = canvas.toDataURL("image/png");
+        await setDoc(doc(db, "planner", "latestImage"), {
+          image: imgData,
+          updated: new Date().toISOString()
+        });
+
+        alert("✅ Tabla e imagen guardadas correctamente en Firestore.");
+      } catch (e) {
+        console.error("Error al guardar en Firestore:", e);
+        alert("❌ Error al guardar en Firestore. Mira la consola.");
+      }
+    };
+
+    // Cargar tabla desde Firestore
+    window.loadFromFirestore = async function() {
+      try {
+        const docRef = doc(db, "planner", "latestTable");
+        const snapshot = await getDoc(docRef);
+        if (!snapshot.exists()) return alert("⚠️ No hay datos guardados todavía.");
+
+        const data = snapshot.data();
+        const { rows, columns, cells } = data;
+        table.innerHTML = '';
+        const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
+
+        for (let r = 0; r < rows; r++) {
+          const tr = table.insertRow();
+          for (let c = 0; c < columns; c++) {
+            if (occupied[r][c]) continue;
+            const cellData = cells.find(cell => cell.row === r && cell.col === c);
+            const td = tr.insertCell();
+            td.contentEditable = "true";
+            if (cellData) {
+              td.innerHTML = cellData.text;
+              td.style.backgroundColor = cellData.color;
+              if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
+            } else {
+              td.innerHTML = "";
+              td.style.backgroundColor = "#FFFFFF";
+            }
+
+            for (let i = 0; i < td.rowSpan; i++) {
+              if (r + i < rows) occupied[r + i][c] = true;
+            }
+
+            td.dataset.colorIndex = 0;
+            td.addEventListener('click', () => {
+              if (!colorClickActive) return;
+              let index = parseInt(td.dataset.colorIndex);
+              index = (index + 1) % cellColors.length;
+              td.style.backgroundColor = cellColors[index];
+              td.dataset.colorIndex = index;
+            });
+          }
+        }
+
+        rows_select.value = rows;
+        columns_select.value = columns;
+        alert("✅ Tabla cargada desde Firestore.");
+      } catch (e) {
+        console.error("Error al cargar Firestore:", e);
+        alert("❌ Error al cargar Firestore. Mira la consola.");
+      }
+    };
+
+    // Funciones auxiliares
+    function loadTableFromCode() { /* ...mantener la tuya... */ }
+    function copyTableCode() { /* ...mantener la tuya... */ }
+    function execCmd(command) { /* ...mantener la tuya... */ }
+    function applyFont() { /* ...mantener la tuya... */ }
+    function applyFontSize() { /* ...mantener la tuya... */ }
+    function applyColor() { /* ...mantener la tuya... */ }
+    function applyCellStyle() { /* ...mantener la tuya... */ }
+    function toggleColorMode() { colorClickActive = !colorClickActive; document.getElementById('toggleColorModeBtn').textContent = colorClickActive ? "Disabilitare colore" : "Attivare colore"; }
+
+  </script>
 
 </body>
 </html>

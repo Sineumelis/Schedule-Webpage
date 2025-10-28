@@ -1,223 +1,193 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>PLANNER SETTIMANALE</title>
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			/*justify-content: center;
-			height: 100vh;*/
-			margin: 0;
-			background-color: #f0f0f0;
-		}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PLANNER SETTIMANALE</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
 
-		.login_container {
-			background-color: #fff;
-			padding: 30px;
-			border-radius: 12px;
-			text-align: center;
-		}
-		input[type="text"], input[type="password"]{
-			width: 200px;
-			padding: 10px;
-			margin: 8px 0;
-			border-radius: 12px;
-			border: 1px solid #ccc;
-		}
-		button {
-			padding: 10px 20px;
-			margin-top: 10px;
-			border: none;
-			border-radius: 12px;
-			background-color: #007bff;
-			color: white;
-			cursor: pointer;
-		}
-		button:hover{
-			background-color: #0056b3;
-		}
+    .login_container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      margin-top: 50px;
+    }
 
-		/*img{
-			margin-top: 20px;
-			width: 1000px;
-			height: 900px;
-			cursor: pointer;
-			transition: all 0.3s ease;
- 			border-radius: 12px;
-		}*/
-		.full_screen {
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			object-fit: contain;
-			z-index: 9999;
-			cursor: pointer;
-			background-color: white;
-		}
-		#image_container{
-			margin-top: 20px;
-			position: relative;
-			z-index: 0;
-		}
-		#toggle_image {
-			cursor: pointer;
-		}
-	</style>
+    input[type="text"], input[type="password"]{
+      width: 200px;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 12px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover{
+      background-color: #0056b3;
+    }
+
+    #toggle_image {
+      margin-top: 20px;
+      cursor: pointer;
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      transition: transform 0.3s ease;
+    }
+
+    .full_screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      z-index: 9999;
+      cursor: pointer;
+      background-color: white;
+    }
+  </style>
 </head>
 <body>
-	<div class="login_container">
-		<h2>Acceso Utente</h2>
-		<input type="text" id="username" placeholder="Username"><br>
-		<input type="password" id="password" placeholder="Password"><br>
-		<button onclick="login()">Accedi Ora</button><br>
 
-	
-	</div>
+  <div class="login_container">
+    <h2>Acceso Utente</h2>
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button onclick="login()">Accedi Ora</button>
+  </div>
 
-	<div class="image_container">
-		<img id="toggle_image" src="https://placehold.co/1600x900" alt="Imaggine"> <!-- Solve problem with size -->
-	</div>
+  <img id="toggle_image" src="https://placehold.co/1600x900" alt="Immagine">
 
-	<script>
-		const defaultUser = "studioDomino";
-		const defaultPassword = "1234";
+  <script>
+    const defaultUser = "studioDomino";
+    const defaultPassword = "1234";
 
-		function showNotification(message, duration = 2000) {
-    		const notif = document.createElement('div');
-    		notif.textContent = message;
-    		notif.style.position = 'fixed';
-   			notif.style.top = '20px';
-    		notif.style.right = '20px';
-    		notif.style.padding = '10px 20px';
-    		notif.style.backgroundColor = '#333';
-    		notif.style.color = 'white';
-    		notif.style.borderRadius = '8px';
-    		notif.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
-    		notif.style.zIndex = 9999;
-    		notif.style.opacity = 0;
-    		notif.style.transition = 'opacity 0.3s';
-    		document.body.appendChild(notif);
+    function showNotification(message, duration = 2000) {
+      const notif = document.createElement('div');
+      notif.textContent = message;
+      notif.style.position = 'fixed';
+      notif.style.top = '20px';
+      notif.style.right = '20px';
+      notif.style.padding = '10px 20px';
+      notif.style.backgroundColor = '#333';
+      notif.style.color = 'white';
+      notif.style.borderRadius = '8px';
+      notif.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+      notif.style.zIndex = 9999;
+      notif.style.opacity = 0;
+      notif.style.transition = 'opacity 0.3s';
+      document.body.appendChild(notif);
 
-    		requestAnimationFrame(() => { notif.style.opacity = 1; });
+      requestAnimationFrame(() => { notif.style.opacity = 1; });
 
-		    setTimeout(() => {
-        		notif.style.opacity = 0;
-        		setTimeout(() => { 
-        			notif.remove(); 
-        		}, 300);
-    		}, duration);
-}
+      setTimeout(() => {
+        notif.style.opacity = 0;
+        setTimeout(() => notif.remove(), 300);
+      }, duration);
+    }
 
-		function login(){
-			const user = document.getElementById('username').value;
-			const password = document.getElementById('password').value;
+    function login() {
+      const user = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
-			if (user == defaultUser && password == defaultPassword) {
-				// alert("Perfetto"); slow downs things
-				window.location.href = "personalize.html";
-			} else {
-				showNotification("Nome utente o password errati");
-			}
-		}
+      if (user === defaultUser && password === defaultPassword) {
+        window.location.href = "personalize.html";
+      } else {
+        showNotification("Nome utente o password errati");
+      }
+    }
 
-		const image = document.getElementById('toggle_image');
-		let isExpanded = false;
+    const image = document.getElementById('toggle_image');
+    let isExpanded = false;
 
-		image.addEventListener('click', () => {
-		    if (!isExpanded) {
-		        // Crear overlay de pantalla completa
-		        const overlay = document.createElement('div');
-		        overlay.id = 'fullscreen_overlay';
-		        overlay.style.position = 'fixed';
-		        overlay.style.top = 0;
-		        overlay.style.left = 0;
-		        overlay.style.width = '100%';
-		        overlay.style.height = '100%';
-		        overlay.style.backgroundColor = 'white';
-		        overlay.style.display = 'flex';
-		        overlay.style.flexDirection = 'column';
-		        overlay.style.alignItems = 'center';
-		        overlay.style.justifyContent = 'flex-start';
-		        overlay.style.zIndex = 10000;
-		        overlay.style.cursor = 'pointer';
-		        document.body.appendChild(overlay);
+    image.addEventListener('click', () => {
+      if (!isExpanded) {
+        const overlay = document.createElement('div');
+        overlay.className = 'full_screen';
+        overlay.style.display = 'flex';
+        overlay.style.flexDirection = 'column';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'flex-start';
+        overlay.style.cursor = 'pointer';
 
-		        // Cabecera arriba
-		        const headerImg = document.createElement('img');
-		        headerImg.src = 'cabecero.jpeg'; // tu cabecera
-		        headerImg.style.width = '100%';
-		        headerImg.style.maxHeight = '150px';
-		        headerImg.style.objectFit = 'cover';
-		        headerImg.style.margin = '0';
-		        headerImg.style.padding = '0';
-		        overlay.appendChild(headerImg);
+        const headerImg = document.createElement('img');
+        headerImg.src = 'cabecero.jpeg'; // cabecera
+        headerImg.style.width = '100%';
+        headerImg.style.maxHeight = '150px';
+        headerImg.style.objectFit = 'cover';
+        overlay.appendChild(headerImg);
 
-		        // Imagen de la tabla debajo
-		        const fullImg = document.createElement('img');
-		        fullImg.src = image.src; // mantiene la imagen de localStorage
-		        fullImg.style.maxWidth = '100%';
-		        fullImg.style.maxHeight = 'calc(100% - 150px)';
-		        fullImg.style.objectFit = 'contain';
-		        overlay.appendChild(fullImg);
+        const fullImg = document.createElement('img');
+        fullImg.src = image.src;
+        fullImg.style.maxWidth = '100%';
+        fullImg.style.maxHeight = 'calc(100% - 150px)';
+        fullImg.style.objectFit = 'contain';
+        overlay.appendChild(fullImg);
 
-		        // Cerrar al clickear cualquier parte del overlay
-		        overlay.addEventListener('click', () => {
-		            overlay.remove();
-		            isExpanded = false;
-		        });
+        overlay.addEventListener('click', () => {
+          overlay.remove();
+          isExpanded = false;
+        });
 
-		        isExpanded = true;
-		    }
-		});
+        document.body.appendChild(overlay);
+        isExpanded = true;
+      }
+    });
+  </script>
 
-		// Cargar la imagen de localStorage al cargar la página
-		window.addEventListener('load', () => {
-		    const data = localStorage.getItem('plannerImage');
-		    if (data) {
-		        image.src = data; 
-		    }
-		});
-</script>
+  <!-- 🔥 Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-<!-- 🔥 Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-	import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
+      authDomain: "schedule-it-69420.firebaseapp.com",
+      projectId: "schedule-it-69420",
+      storageBucket: "schedule-it-69420.appspot.com",
+      messagingSenderId: "541795813911",
+      appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
+      measurementId: "G-K5BR2NTY3C"
+    };
 
-	const firebaseConfig = {
-	  apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
-	  authDomain: "schedule-it-69420.firebaseapp.com",
-	  projectId: "schedule-it-69420",
-	  storageBucket: "schedule-it-69420.appspot.com",
-	  messagingSenderId: "541795813911",
-	  appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
-	  measurementId: "G-K5BR2NTY3C"
-	};
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-	const app = initializeApp(firebaseConfig);
-	const db = getFirestore(app);
-
-	const image = document.getElementById('toggle_image');
-
-	// 🔄 Escuchar en tiempo real los cambios del documento en Firestore
-	const docRef = doc(db, 'planner', 'latestImage');
-	onSnapshot(docRef, (snapshot) => {
-	  if (snapshot.exists()) {
-	    const data = snapshot.data();
-	    image.src = data.url;
-	  } else {
-	    console.log("⚠️ No existe aún ninguna imagen en Firestore");
-	  }
-	});
-</script>
-
+    // Escuchar en tiempo real el documento con la imagen base64
+    const docRef = doc(db, 'planner', 'latestImage');
+    onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.image) {
+          image.src = data.image;
+          console.log("✅ Imagen cargada desde Firestore");
+        } else {
+          console.log("⚠️ Documento existe pero no tiene 'image'");
+        }
+      } else {
+        console.log("⚠️ No existe aún ninguna imagen en Firestore");
+      }
+    });
+  </script>
 
 </body>
 </html>
