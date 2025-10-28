@@ -403,64 +403,51 @@
 
 	</script>
 
-	<!-- 🔥 Firebase SDKs -->
-		<script type="module">
+	<script type="module">
 		  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 		  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 		  import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-		  // 🔧 Tus credenciales (reemplaza si las cambiamos antes)
 		  const firebaseConfig = {
-			  apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
-			  authDomain: "schedule-it-69420.firebaseapp.com",
-			  projectId: "schedule-it-69420",
-			  storageBucket: "schedule-it-69420.firebasestorage.app",
-			  messagingSenderId: "541795813911",
-			  appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
-			  measurementId: "G-K5BR2NTY3C"
-			};
+		    apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
+		    authDomain: "schedule-it-69420.firebaseapp.com",
+		    projectId: "schedule-it-69420",
+		    storageBucket: "schedule-it-69420.appspot.com", // recomendado .appspot.com
+		    messagingSenderId: "541795813911",
+		    appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
+		    measurementId: "G-K5BR2NTY3C"
+		  };
 
 		  const app = initializeApp(firebaseConfig);
 		  const db = getFirestore(app);
 		  const storage = getStorage(app);
 
-		  // ✅ Reemplazamos la función tableToImage por esta versión
 		  window.tableToImage = async function() {
-		      const tableElement = document.getElementById('planner');
+		    const tableElement = document.getElementById('planner');
 
-		      // Crear cabecera temporal
-		      const tempHeader = document.createElement('div');
-		      tempHeader.style.textAlign = 'center';
-		      tempHeader.style.marginBottom = '10px';
-		      tempHeader.innerHTML = `<img src="cabecero.jpeg" alt="Cabecera" 
-		          style="max-width:100%; height:auto; display:block; margin:0 auto;">`;
-		      tableElement.parentElement.prepend(tempHeader);
+		    // Generar imagen solo de la tabla
+		    const canvas = await html2canvas(tableElement, { scale: 2, backgroundColor: "#FFFFFF" });
+		    const imgData = canvas.toDataURL('image/png');
 
-		      // Generar imagen con cabecera
-		      const canvas = await html2canvas(tableElement.parentElement, { scale: 2, backgroundColor: "#FFFFFF" });
-		      tempHeader.remove();
-		      const imgData = canvas.toDataURL('image/png');
+		    // Guardar localmente
+		    localStorage.setItem('plannerImage', imgData);
 
-		      // Guardar localmente (por compatibilidad)
-		      localStorage.setItem('plannerImage', imgData);
+		    // Subir a Firebase Storage
+		    const storageRef = ref(storage, 'planner/plannerImage.png');
+		    await uploadString(storageRef, imgData, 'data_url');
 
-		      // 🔼 Subir imagen al Storage de Firebase
-		      const storageRef = ref(storage, 'planner/plannerImage.png');
-		      await uploadString(storageRef, imgData, 'data_url');
+		    // Guardar URL en Firestore
+		    const downloadURL = await getDownloadURL(storageRef);
+		    const docRef = doc(db, 'planner', 'latestImage');
+		    await setDoc(docRef, {
+		      url: downloadURL,
+		      updated: new Date().toISOString()
+		    });
 
-		      // Obtener URL pública
-		      const downloadURL = await getDownloadURL(storageRef);
-
-		      // Guardar URL en Firestore (colección “planner”, documento “latestImage”)
-		      const docRef = doc(db, 'planner', 'latestImage');
-		      await setDoc(docRef, {
-		          url: downloadURL,
-		          updated: new Date().toISOString()
-		      });
-
-		      alert("✅ Imagen subida correctamente a Firebase y compartida online");
+		    alert("✅ Imagen de la tabla subida correctamente a Firebase");
 		  }
 		</script>
+
 
 </body>
 </html>
