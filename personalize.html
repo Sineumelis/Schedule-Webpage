@@ -181,6 +181,7 @@
           td.contentEditable = "true";
 
           td.addEventListener('focus', () => activeCell = td);
+          attachCellListeners(td);
 
           if (c == 0 && r % 2 == 0 && r + 1 < rows) td.rowSpan = 2;
 
@@ -334,105 +335,213 @@
       }
     };
 
-        // Copiar código de tabla
-    function copyTableCode() {
-      const textarea = document.getElementById('tableCode');
-      textarea.select();
-      document.execCommand('copy');
-      alert('📋 Copiato negli appunti!');
-    }
+  // -------------------- Helpers para selección y estilos --------------------
+function isNodeInside(node, container) {
+  if (!node || !container) return false;
+  let cur = node.nodeType === 3 ? node.parentNode : node;
+  while (cur) {
+    if (cur === container) return true;
+    cur = cur.parentNode;
+  }
+  return false;
+}
 
-    // Aplicar comandos de formato directo
-    function execCmd(command) {
-      document.execCommand(command, false, null);
-    }
+function wrapRangeWithSpan(range, styles) {
+  const span = document.createElement('span');
+  // aplicar estilos pasados como objeto
+  for (const k in styles) span.style[k] = styles[k];
+  // mover el contenido seleccionado dentro del span
+  span.appendChild(range.extractContents());
+  range.insertNode(span);
+  return span;
+}
 
-    // Aplica tipo de letra a la celda activa
-    function applyFont() {
-      if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
-      const font = document.getElementById('fontSelect').value;
-      activeCell.style.fontFamily = font;
-    }
+// Intenta aplicar estilos a la selección si está dentro de activeCell.
+// Si no hay selección o la selección no está dentro, aplica al activeCell entero.
+function applyStyleToSelectionOrCell(styles) {
+  if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
 
-    // Aplica tamaño de fuente
-    function applyFontSize() {
-      if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
-      const size = document.getElementById('fontSizeInput').value;
-      activeCell.style.fontSize = size + 'px';
-    }
-
-    // Aplica color de texto
-    function applyColor() {
-      if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
-      const color = document.getElementById('fontColor').value;
-      activeCell.style.color = color;
-    }
-
-    // Aplica todos los estilos juntos (botón “Applicare”)
-    function applyCellStyle() {
-      if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
-      const font = document.getElementById('fontSelect').value;
-      const size = document.getElementById('fontSizeInput').value;
-      const color = document.getElementById('fontColor').value;
-      activeCell.style.fontFamily = font;
-      activeCell.style.fontSize = size + 'px';
-      activeCell.style.color = color;
-    }
-
-    // Cargar tabla desde código (opcional)
-    function loadTableFromCode() {
-      const code = document.getElementById('loadCode').value.trim();
-      if (!code) return alert("⚠️ Nessun codice incollato!");
-
-      try {
-        const data = JSON.parse(code);
-        const { rows, columns, cells } = data;
-        table.innerHTML = '';
-        const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
-
-        for (let r = 0; r < rows; r++) {
-          const tr = table.insertRow();
-          for (let c = 0; c < columns; c++) {
-            if (occupied[r][c]) continue;
-            const cellData = cells.find(cell => cell.row === r && cell.col === c);
-            const td = tr.insertCell();
-            td.contentEditable = "true";
-            if (cellData) {
-              td.innerHTML = cellData.text;
-              td.style.backgroundColor = cellData.color;
-              td.style.fontFamily = cellData.fontFamily || 'Arial';
-              td.style.fontSize = cellData.fontSize || '16px';
-              td.style.color = cellData.textColor || '#000000';
-              if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
-            } else {
-              td.innerHTML = "";
-              td.style.backgroundColor = "#FFFFFF";
-            }
-
-            for (let i = 0; i < td.rowSpan; i++) {
-              if (r + i < rows) occupied[r + i][c] = true;
-            }
-
-            td.addEventListener('focus', () => activeCell = td);
-            td.dataset.colorIndex = 0;
-            td.addEventListener('click', () => {
-              if (!colorClickActive) return;
-              let index = parseInt(td.dataset.colorIndex);
-              index = (index + 1) % cellColors.length;
-              td.style.backgroundColor = cellColors[index];
-              td.dataset.colorIndex = index;
-            });
-          }
-        }
-
-        rows_select.value = rows;
-        columns_select.value = columns;
-        alert("✅ Tabella caricata dal codice!");
-      } catch (e) {
-        console.error("Errore nel codice:", e);
-        alert("❌ Codice non valido!");
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0);
+    // la selección debe estar dentro de la celda activa
+    if (isNodeInside(range.commonAncestorContainer, activeCell)) {
+      // Si la selección es sólo un caret (sin contenido), tratamos como aplicar al cell
+      if (sel.isCollapsed) {
+        // aplicar al nodo contenedor: insertar span vacío con estilos (caret se coloca dentro)
+        const span = document.createElement('span');
+        for (const k in styles) span.style[k] = styles[k];
+        span.innerHTML = '\u200B'; // zero-width so caret is visible
+        range.insertNode(span);
+        // mover caret dentro del span
+        sel.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.setStart(span, 1);
+        newRange.collapse(true);
+        sel.addRange(newRange);
+        return span;
+      } else {
+        // envolver la selección
+        wrapRangeWithSpan(range, styles);
+        // limpiar selección para evitar duplicados
+        sel.removeAllRanges();
+        return;
       }
     }
+  }
+
+    // si llegamos aquí, aplicar al cell completo
+    for (const k in styles) {
+      activeCell.style[k] = styles[k];
+    }
+  }
+
+  // -------------------- Mantener activeCell actualizado --------------------
+  // Añadimos listeners a table para capturar clicks/keys dentro de celdas y mantener activeCell
+  function attachCellListeners(td) {
+    td.addEventListener('focus', () => activeCell = td);
+    td.addEventListener('mouseup', () => activeCell = td);
+    td.addEventListener('keyup', () => activeCell = td);
+    td.addEventListener('pointerdown', () => activeCell = td);
+    // conservar dataset.colorIndex si estaba antes
+    if (!td.dataset.colorIndex) td.dataset.colorIndex = 0;
+  }
+
+  // cuando creamos celdas (createTable, loadFromFirestore, loadTableFromCode) 
+  // asegúrate de llamar attachCellListeners(td) — ver más abajo: ya lo hemos integrado
+  // ---------------------------------------------------------------------------
+
+  // -------------------- Funciones de UI y formateo --------------------
+  function copyTableCode() {
+    const textarea = document.getElementById('tableCode');
+    textarea.select();
+    document.execCommand('copy');
+    alert('📋 Copiado negli appunti!');
+  }
+
+  // usar execCmd solo para bold/italic/underline mediante document.execCommand (seguirán funcionando)
+  // pero además preservamos activeCell
+  function execCmd(command) {
+    if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
+    // restaurar el foco en la celda para que execCommand afecte allí
+    activeCell.focus();
+    document.execCommand(command, false, null);
+  }
+
+  // Aplica tipo de letra a la celda activa o selección dentro de ella
+  function applyFont() {
+    if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
+    const font = document.getElementById('fontSelect').value;
+    applyStyleToSelectionOrCell({ fontFamily: font });
+  }
+
+  // Aplica tamaño de fuente (en px)
+  function applyFontSize() {
+    if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
+    const size = document.getElementById('fontSizeInput').value;
+    if (!size || isNaN(size)) return alert("⚠️ Inserisci un numero valido per la dimensione!");
+    applyStyleToSelectionOrCell({ fontSize: size + 'px' });
+  }
+
+  // Aplica color de texto
+  function applyColor() {
+    if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
+    const color = document.getElementById('fontColor').value;
+    applyStyleToSelectionOrCell({ color: color });
+  }
+
+  // Aplica todos los estilos juntos (botón “Applicare”)
+  function applyCellStyle() {
+    if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
+    const font = document.getElementById('fontSelect').value;
+    const size = document.getElementById('fontSizeInput').value;
+    const color = document.getElementById('fontColor').value;
+    const styles = {};
+    if (font) styles.fontFamily = font;
+    if (size && !isNaN(size)) styles.fontSize = size + 'px';
+    if (color) styles.color = color;
+    applyStyleToSelectionOrCell(styles);
+  }
+
+  // -------------------- Reemplazos en createTable y carga para añadir listeners --------------------
+  // IMPORTANTE: el siguiente fragmento debe integrarse en la parte donde creas las celdas.
+  // Si usas la función createTable que ya tienes, busca la línea donde creas `const td = tr.insertCell();`
+  // y añade inmediatamente después: `attachCellListeners(td);`
+  // También en loadFromFirestore y loadTableFromCode, después de crear cada td, llama attachCellListeners(td).
+  // Ejemplo (dentro de createTable):
+  //    const td = tr.insertCell();
+  //    td.contentEditable = "true";
+  //    attachCellListeners(td);
+  //    td.addEventListener('focus', () => activeCell = td);  // <-- ya hecho por attachCellListeners
+
+  // Para ahorrarte buscar: aquí tienes un pequeño wrapper que puedes llamar justo después de createTable(…) para
+  // añadir listeners a todas las celdas existentes (útil si no editas createTable):
+  function ensureListenersOnAllCells() {
+    for (let r = 0; r < table.rows.length; r++) {
+      for (let c = 0; c < table.rows[r].cells.length; c++) {
+        const td = table.rows[r].cells[c];
+        if (!td._listenersAttached) {
+          attachCellListeners(td);
+          td._listenersAttached = true;
+        }
+      }
+    }
+  }
+
+  // Llamar a ensureListenersOnAllCells() tras crear o cargar la tabla
+  // Por ejemplo, modifica las llamadas createTable(...) y loadFromFirestore(...) para hacer:
+  // createTable(...);
+  // ensureListenersOnAllCells();
+  // y al final de loadFromFirestore() ya llamo a ensureListenersOnAllCells() en el bloque principal.
+
+  // -------------------- loadTableFromCode (mejorada) --------------------
+  function loadTableFromCode() {
+    const code = document.getElementById('loadCode').value.trim();
+    if (!code) return alert("⚠️ Nessun codice incollato!");
+
+    try {
+      const data = JSON.parse(code);
+      const { rows, columns, cells } = data;
+      table.innerHTML = '';
+      const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
+
+      for (let r = 0; r < rows; r++) {
+        const tr = table.insertRow();
+        for (let c = 0; c < columns; c++) {
+          if (occupied[r][c]) continue;
+          const cellData = cells.find(cell => cell.row === r && cell.col === c);
+          const td = tr.insertCell();
+          td.contentEditable = "true";
+          if (cellData) {
+            td.innerHTML = cellData.text || "";
+            td.style.backgroundColor = cellData.color || "#FFFFFF";
+            if (cellData.fontFamily) td.style.fontFamily = cellData.fontFamily;
+            if (cellData.fontSize) td.style.fontSize = cellData.fontSize;
+            if (cellData.textColor) td.style.color = cellData.textColor;
+            if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
+          } else {
+            td.innerHTML = "";
+            td.style.backgroundColor = "#FFFFFF";
+          }
+
+          for (let i = 0; i < td.rowSpan; i++) {
+            if (r + i < rows) occupied[r + i][c] = true;
+          }
+
+          attachCellListeners(td);
+        }
+      }
+
+      rows_select.value = rows;
+      columns_select.value = columns;
+
+      ensureListenersOnAllCells();
+      alert("✅ Tabella caricata dal codice!");
+    } catch (e) {
+      console.error("Errore nel codice:", e);
+      alert("❌ Codice non valido!");
+    }
+  }
 
 
   </script>
