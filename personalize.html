@@ -11,46 +11,18 @@
   <title>Personalizza Tabella</title>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f0f0f0;
-    }
-
-    select, button {
-      padding: 5px 10px;
-      margin-right: 10px;
-      margin-left: 20px;
-    }
-
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      max-width: 1600px;
-      background-color: #fff;
-    }
-
-    table, th, td {
-      border: 1px solid #828282;
-    }
-
-    td {
-      width: 120px;
-      height: 70px;
-      text-align: center;
-      vertical-align: middle;
-      cursor: text;
-    }
-
-    td:focus {
-      outline: 2px solid #007bff;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f0f0f0; }
+    select, button { padding: 5px 10px; margin-right: 10px; margin-left: 20px; }
+    table { border-collapse: collapse; width: 100%; max-width: 1600px; background-color: #fff; }
+    table, th, td { border: 1px solid #828282; }
+    td { width: 120px; height: 70px; text-align: center; vertical-align: middle; cursor: text; }
+    td:focus { outline: 2px solid #007bff; }
   </style>
 </head>
 <body>
-  <h1>Ciao</h1>
+<h1>Ciao</h1>
 
-  <label>
+<label>
     Lines:
     <select id="rows_selected">
       <option value="1">1</option>
@@ -86,465 +58,276 @@
     </select>
   </label>
 
-  <button onclick="tableToImage()">Generate Image</button>
+<button onclick="tableToImage()">Generate Image</button>
 
-  <br><br>
+<br><br>
 
-  <label>Codice della Tabella:</label><br>
-  <textarea id="tableCode" rows="5" cols="50" readonly placeholder="Table's code"></textarea>
-  <button onclick="copyTableCode()">Copy Code</button>
+<label>Codice della Tabella:</label><br>
+<textarea id="tableCode" rows="5" cols="50" readonly placeholder="Table's code"></textarea>
+<button onclick="copyTableCode()">Copy Code</button>
 
-  <br><br>
+<br><br>
 
-  <label>Inserisci il Codice della Tabella:</label><br>
-  <textarea id="loadCode" rows="5" cols="50" placeholder="Paste code here"></textarea>
-  <button onclick="loadTableFromCode()">Load table</button>
+<label>Inserisci il Codice della Tabella:</label><br>
+<textarea id="loadCode" rows="5" cols="50" placeholder="Paste code here"></textarea>
+<button onclick="loadTableFromCode()">Load table</button>
 
-  <br><br>
+<br><br>
 
-  <div id="editorControls">
-    <label>Lettera:
-      <select id="fontSelect" onchange="applyFont()">
-        <option value="Arial">Arial</option>
-        <option value="Courier New">Courier New</option>
-        <option value="Times New Roman">Times New Roman</option>
-        <option value="Verdana">Verdana</option>
-      </select>
-    </label>
+<div id="editorControls">
+  <label>Lettera:
+    <select id="fontSelect" onchange="applyFont()">
+      <option value="Arial">Arial</option>
+      <option value="Courier New">Courier New</option>
+      <option value="Times New Roman">Times New Roman</option>
+      <option value="Verdana">Verdana</option>
+    </select>
+  </label>
 
-    <label>Misurare:
-      <input list="fontSizes" id="fontSizeInput" type="number" min="1" value="16" onchange="applyFontSize()">
-    </label>
+  <label>Misurare:
+    <input type="number" min="1" value="16" id="fontSizeInput" onchange="applyFontSize()">
+  </label>
 
-    <button onclick="execCmd('bold')"><b>B</b></button>
-    <button onclick="execCmd('italic')"><i>I</i></button>
-    <button onclick="execCmd('underline')"><u>U</u></button>
-    <input type="color" id="fontColor" onchange="applyColor()" value="#000000">
-    <button onclick="applyCellStyle()">Applicare</button>
-  </div>
+  <button onclick="execCmd('bold')"><b>B</b></button>
+  <button onclick="execCmd('italic')"><i>I</i></button>
+  <button onclick="execCmd('underline')"><u>U</u></button>
+  <input type="color" id="fontColor" onchange="applyColor()" value="#000000">
+  <button onclick="applyCellStyle()">Applicare</button>
+</div>
 
-  <br>
-  <button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
+<br>
+<button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
 
-  <br><br>
-  <button onclick="loadFromFirestore()">Cargar desde Firestore</button>
+<br><br>
+<button onclick="loadFromFirestore()">Cargar desde Firestore</button>
 
-  <table id="planner"></table>
+<table id="planner"></table>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
-      authDomain: "schedule-it-69420.firebaseapp.com",
-      projectId: "schedule-it-69420",
-      storageBucket: "schedule-it-69420.appspot.com",
-      messagingSenderId: "541795813911",
-      appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
-      measurementId: "G-K5BR2NTY3C"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
+  authDomain: "schedule-it-69420.firebaseapp.com",
+  projectId: "schedule-it-69420",
+  storageBucket: "schedule-it-69420.appspot.com",
+  messagingSenderId: "541795813911",
+  appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
+  measurementId: "G-K5BR2NTY3C"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    const table = document.getElementById('planner');
-    const rows_select = document.getElementById('rows_selected');
-    const columns_select = document.getElementById('columns_selected');
+const table = document.getElementById('planner');
+const rows_select = document.getElementById('rows_selected');
+const columns_select = document.getElementById('columns_selected');
 
-    const cellColors = ["#ADD8E6", "#B0C4DE", "#FFB6C1", "#FFA500", "#90EE90", "#FFFFFF"];
-    let activeCell = null;
-    let colorClickActive = false;
+const cellColors = ["#ADD8E6","#B0C4DE","#FFB6C1","#FFA500","#90EE90","#FFFFFF"];
+let activeCell = null;
+let colorClickActive = false;
 
-    function createTable(rows, columns) {
-      const oldData = [];
-      for (let r = 0; r < table.rows.length; r++) {
-        oldData[r] = [];
-        for (let c = 0; c < table.rows[r].cells.length; c++) {
-          oldData[r][c] = {
-            text: table.rows[r].cells[c].innerHTML,
-            color: table.rows[r].cells[c].style.backgroundColor || "#FFFFFF",
-            rowspan: table.rows[r].cells[c].rowSpan || 1
-          };
-        }
-      }
+// -------------------- UTILS --------------------
+function attachCellListeners(td){
+  td.addEventListener('focus',()=>activeCell=td);
+  td.addEventListener('mouseup',()=>activeCell=td);
+  td.addEventListener('keyup',()=>activeCell=td);
+  td.addEventListener('pointerdown',()=>activeCell=td);
+  if(!td.dataset.colorIndex) td.dataset.colorIndex=0;
+}
 
-      table.innerHTML = '';
-      for (let r = 0; r < rows; r++) {
-        const tr = table.insertRow();
-        for (let c = 0; c < columns; c++) {
-          if (r > 0 && c == 0 && table.rows[r - 1]?.cells[0]?.rowSpan == 2) continue;
-
-          const td = tr.insertCell();
-          td.contentEditable = "true";
-
-          td.addEventListener('focus', () => activeCell = td);
-          attachCellListeners(td);
-
-          if (c == 0 && r % 2 == 0 && r + 1 < rows) td.rowSpan = 2;
-
-          if (oldData[r] && oldData[r][c] !== undefined) {
-            td.innerHTML = oldData[r][c].text;
-            td.style.backgroundColor = oldData[r][c].color;
-          }
-
-          td.dataset.colorIndex = 0;
-          td.addEventListener('click', () => {
-            if (!colorClickActive) return;
-            let index = parseInt(td.dataset.colorIndex);
-            index = (index + 1) % cellColors.length;
-            td.style.backgroundColor = cellColors[index];
-            td.dataset.colorIndex = index;
-          });
-        }
-      }
-    }
-
-    rows_select.addEventListener('change', () => createTable(parseInt(rows_select.value), table.rows[0]?.cells.length || 1));
-    columns_select.addEventListener('change', () => createTable(table.rows.length || 1, parseInt(columns_select.value)));
-
-    createTable(1, 1);
-
-    window.tableToImage = async function() {
-      if (!table) return alert("No hay tabla para guardar.");
-
-      const rows = table.rows.length;
-      const columns = table.rows[0]?.cells.length || 0;
-
-      const cellList = [];
-      const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
-
-      // 📋 Guardar datos de la tabla
-      for (let r = 0; r < rows; r++) {
-        let colIndex = 0;
-        const tr = table.rows[r];
-
-        for (let ci = 0; ci < tr.cells.length; ci++) {
-          while (occupied[r][colIndex]) colIndex++;
-
-          const td = tr.cells[ci];
-          cellList.push({
-            row: r,
-            col: colIndex,
-            text: td.innerHTML,
-            color: td.style.backgroundColor || "#FFFFFF",
-            rowspan: td.rowSpan || 1
-          });
-
-          for (let i = 0; i < td.rowSpan; i++) {
-            if (r + i < rows) occupied[r + i][colIndex] = true;
-          }
-          colIndex++;
-        }
-      }
-
-      try {
-        // 💾 Guardar tabla
-        await setDoc(doc(db, "planner", "latestTable"), {
-          rows,
-          columns,
-          cells: cellList,
-          updated: new Date().toISOString()
-        });
-
-        // 🎨 Crear un clon invisible de la tabla sin márgenes ni padding
-        const clone = table.cloneNode(true);
-        clone.style.margin = "0";
-        clone.style.padding = "0";
-        clone.style.borderCollapse = "collapse";
-        clone.style.backgroundColor = "#FFFFFF";
-        document.body.appendChild(clone);
-
-        // 📸 Capturar solo el clon
-        const canvas = await html2canvas(clone, {
-          scale: 3, // alta resolución
-          backgroundColor: "#FFFFFF",
-          useCORS: true,
-          removeContainer: true
-        });
-
-        document.body.removeChild(clone);
-
-        // 🖼 Convertir a Base64
-        const imgData = canvas.toDataURL("image/png");
-
-        // 🔥 Subir imagen a Firestore
-        await setDoc(doc(db, "planner", "latestImage"), {
-          image: imgData,
-          updated: new Date().toISOString()
-        });
-
-        alert("✅ Tabla e imagen guardadas correctamente en Firestore.");
-      } catch (e) {
-        console.error("Error al guardar en Firestore:", e);
-        alert("❌ Error al guardar en Firestore. Mira la consola.");
-      }
-    };
-
-    // Cargar tabla desde Firestore
-    window.loadFromFirestore = async function() {
-      try {
-        const docRef = doc(db, "planner", "latestTable");
-        const snapshot = await getDoc(docRef);
-        if (!snapshot.exists()) return alert("⚠️ No hay datos guardados todavía.");
-
-        const data = snapshot.data();
-        const { rows, columns, cells } = data;
-        table.innerHTML = '';
-        const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
-
-        for (let r = 0; r < rows; r++) {
-          const tr = table.insertRow();
-          for (let c = 0; c < columns; c++) {
-            if (occupied[r][c]) continue;
-            const cellData = cells.find(cell => cell.row === r && cell.col === c);
-            const td = tr.insertCell();
-            td.contentEditable = "true";
-            if (cellData) {
-              td.innerHTML = cellData.text;
-              td.style.backgroundColor = cellData.color;
-              if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
-            } else {
-              td.innerHTML = "";
-              td.style.backgroundColor = "#FFFFFF";
-            }
-
-            for (let i = 0; i < td.rowSpan; i++) {
-              if (r + i < rows) occupied[r + i][c] = true;
-            }
-
-            td.dataset.colorIndex = 0;
-            td.addEventListener('click', () => {
-              if (!colorClickActive) return;
-              let index = parseInt(td.dataset.colorIndex);
-              index = (index + 1) % cellColors.length;
-              td.style.backgroundColor = cellColors[index];
-              td.dataset.colorIndex = index;
-            });
-          }
-        }
-
-        rows_select.value = rows;
-        columns_select.value = columns;
-        alert("✅ Tabla cargada desde Firestore.");
-      } catch (e) {
-        console.error("Error al cargar Firestore:", e);
-        alert("❌ Error al cargar Firestore. Mira la consola.");
-      }
-    };
-
-  // -------------------- Helpers para selección y estilos --------------------
-function isNodeInside(node, container) {
-  if (!node || !container) return false;
-  let cur = node.nodeType === 3 ? node.parentNode : node;
-  while (cur) {
-    if (cur === container) return true;
-    cur = cur.parentNode;
-  }
+function isNodeInside(node, container){
+  if(!node||!container) return false;
+  let cur=node.nodeType===3?node.parentNode:node;
+  while(cur){if(cur===container) return true; cur=cur.parentNode;}
   return false;
 }
 
-function wrapRangeWithSpan(range, styles) {
-  const span = document.createElement('span');
-  // aplicar estilos pasados como objeto
-  for (const k in styles) span.style[k] = styles[k];
-  // mover el contenido seleccionado dentro del span
+function wrapRangeWithSpan(range, styles){
+  const span=document.createElement('span');
+  for(const k in styles) span.style[k]=styles[k];
   span.appendChild(range.extractContents());
   range.insertNode(span);
   return span;
 }
 
-// Intenta aplicar estilos a la selección si está dentro de activeCell.
-// Si no hay selección o la selección no está dentro, aplica al activeCell entero.
-function applyStyleToSelectionOrCell(styles) {
-  if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
-
-  const sel = window.getSelection();
-  if (sel && sel.rangeCount > 0) {
-    const range = sel.getRangeAt(0);
-    // la selección debe estar dentro de la celda activa
-    if (isNodeInside(range.commonAncestorContainer, activeCell)) {
-      // Si la selección es sólo un caret (sin contenido), tratamos como aplicar al cell
-      if (sel.isCollapsed) {
-        // aplicar al nodo contenedor: insertar span vacío con estilos (caret se coloca dentro)
-        const span = document.createElement('span');
-        for (const k in styles) span.style[k] = styles[k];
-        span.innerHTML = '\u200B'; // zero-width so caret is visible
+function applyStyleToSelectionOrCell(styles){
+  if(!activeCell) return alert("⚠️ Seleziona una cella prima!");
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount>0){
+    const range=sel.getRangeAt(0);
+    if(isNodeInside(range.commonAncestorContainer,activeCell)){
+      if(sel.isCollapsed){
+        const span=document.createElement('span');
+        for(const k in styles) span.style[k]=styles[k];
+        span.innerHTML='\u200B';
         range.insertNode(span);
-        // mover caret dentro del span
         sel.removeAllRanges();
-        const newRange = document.createRange();
-        newRange.setStart(span, 1);
-        newRange.collapse(true);
+        const newRange=document.createRange();
+        newRange.setStart(span,1); newRange.collapse(true);
         sel.addRange(newRange);
-        return span;
+        return;
       } else {
-        // envolver la selección
-        wrapRangeWithSpan(range, styles);
-        // limpiar selección para evitar duplicados
+        wrapRangeWithSpan(range,styles);
         sel.removeAllRanges();
         return;
       }
     }
   }
+  for(const k in styles) activeCell.style[k]=styles[k];
+}
 
-    // si llegamos aquí, aplicar al cell completo
-    for (const k in styles) {
-      activeCell.style[k] = styles[k];
+function ensureListenersOnAllCells(){
+  for(let r=0;r<table.rows.length;r++){
+    for(let c=0;c<table.rows[r].cells.length;c++){
+      const td=table.rows[r].cells[c];
+      if(!td._listenersAttached){attachCellListeners(td); td._listenersAttached=true;}
     }
   }
+}
 
-  // -------------------- Mantener activeCell actualizado --------------------
-  // Añadimos listeners a table para capturar clicks/keys dentro de celdas y mantener activeCell
-  function attachCellListeners(td) {
-    td.addEventListener('focus', () => activeCell = td);
-    td.addEventListener('mouseup', () => activeCell = td);
-    td.addEventListener('keyup', () => activeCell = td);
-    td.addEventListener('pointerdown', () => activeCell = td);
-    // conservar dataset.colorIndex si estaba antes
-    if (!td.dataset.colorIndex) td.dataset.colorIndex = 0;
+// -------------------- TABLE --------------------
+function createTable(rows,columns){
+  const oldData=[];
+  for(let r=0;r<table.rows.length;r++){
+    oldData[r]=[];
+    for(let c=0;c<table.rows[r].cells.length;c++){
+      oldData[r][c]={text:table.rows[r].cells[c].innerHTML,color:table.rows[r].cells[c].style.backgroundColor||"#FFFFFF",rowspan:table.rows[r].cells[c].rowSpan||1};
+    }
   }
-
-  // cuando creamos celdas (createTable, loadFromFirestore, loadTableFromCode) 
-  // asegúrate de llamar attachCellListeners(td) — ver más abajo: ya lo hemos integrado
-  // ---------------------------------------------------------------------------
-
-  // -------------------- Funciones de UI y formateo --------------------
-  function copyTableCode() {
-    const textarea = document.getElementById('tableCode');
-    textarea.select();
-    document.execCommand('copy');
-    alert('📋 Copiado negli appunti!');
+  table.innerHTML='';
+  for(let r=0;r<rows;r++){
+    const tr=table.insertRow();
+    for(let c=0;c<columns;c++){
+      if(r>0 && c==0 && table.rows[r-1]?.cells[0]?.rowSpan==2) continue;
+      const td=tr.insertCell();
+      td.contentEditable="true";
+      attachCellListeners(td);
+      if(c==0 && r%2==0 && r+1<rows) td.rowSpan=2;
+      if(oldData[r] && oldData[r][c]!==undefined){
+        td.innerHTML=oldData[r][c].text;
+        td.style.backgroundColor=oldData[r][c].color;
+      }
+      td.dataset.colorIndex=0;
+      td.addEventListener('click',()=>{if(!colorClickActive) return; let i=parseInt(td.dataset.colorIndex); i=(i+1)%cellColors.length; td.style.backgroundColor=cellColors[i]; td.dataset.colorIndex=i;});
+    }
   }
+  ensureListenersOnAllCells();
+}
 
-  // usar execCmd solo para bold/italic/underline mediante document.execCommand (seguirán funcionando)
-  // pero además preservamos activeCell
-  function execCmd(command) {
-    if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
-    // restaurar el foco en la celda para que execCommand afecte allí
-    activeCell.focus();
-    document.execCommand(command, false, null);
+rows_select.addEventListener('change',()=>createTable(parseInt(rows_select.value),table.rows[0]?.cells.length||1));
+columns_select.addEventListener('change',()=>createTable(table.rows.length||1,parseInt(columns_select.value)));
+
+createTable(1,1);
+
+// -------------------- BUTTON FUNCTIONS --------------------
+window.tableToImage=async function(){
+  if(!table) return alert("No hay tabla para guardar.");
+  const rows=table.rows.length;
+  const columns=table.rows[0]?.cells.length||0;
+  const cellList=[]; const occupied=Array.from({length:rows},()=>Array(columns).fill(false));
+  for(let r=0;r<rows;r++){
+    let colIndex=0;
+    const tr=table.rows[r];
+    for(let ci=0;ci<tr.cells.length;ci++){
+      while(occupied[r][colIndex]) colIndex++;
+      const td=tr.cells[ci];
+      cellList.push({row:r,col:colIndex,text:td.innerHTML,color:td.style.backgroundColor||"#FFFFFF",rowspan:td.rowSpan||1});
+      for(let i=0;i<td.rowSpan;i++) if(r+i<rows) occupied[r+i][colIndex]=true;
+      colIndex++;
+    }
   }
+  try{
+    await setDoc(doc(db,"planner","latestTable"),{rows,columns,cells:cellList,updated:new Date().toISOString()});
+    const clone=table.cloneNode(true);
+    clone.style.margin="0"; clone.style.padding="0"; clone.style.borderCollapse="collapse"; clone.style.backgroundColor="#FFFFFF";
+    document.body.appendChild(clone);
+    const canvas=await html2canvas(clone,{scale:3,backgroundColor:"#FFFFFF",useCORS:true,removeContainer:true});
+    document.body.removeChild(clone);
+    const imgData=canvas.toDataURL("image/png");
+    await setDoc(doc(db,"planner","latestImage"),{image:imgData,updated:new Date().toISOString()});
+    alert("✅ Tabla e imagen guardadas correctamente en Firestore.");
+  }catch(e){console.error(e); alert("❌ Error al guardar en Firestore.");}
+}
 
-  // Aplica tipo de letra a la celda activa o selección dentro de ella
-  function applyFont() {
-    if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
-    const font = document.getElementById('fontSelect').value;
-    applyStyleToSelectionOrCell({ fontFamily: font });
-  }
-
-  // Aplica tamaño de fuente (en px)
-  function applyFontSize() {
-    if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
-    const size = document.getElementById('fontSizeInput').value;
-    if (!size || isNaN(size)) return alert("⚠️ Inserisci un numero valido per la dimensione!");
-    applyStyleToSelectionOrCell({ fontSize: size + 'px' });
-  }
-
-  // Aplica color de texto
-  function applyColor() {
-    if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
-    const color = document.getElementById('fontColor').value;
-    applyStyleToSelectionOrCell({ color: color });
-  }
-
-  // Aplica todos los estilos juntos (botón “Applicare”)
-  function applyCellStyle() {
-    if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
-    const font = document.getElementById('fontSelect').value;
-    const size = document.getElementById('fontSizeInput').value;
-    const color = document.getElementById('fontColor').value;
-    const styles = {};
-    if (font) styles.fontFamily = font;
-    if (size && !isNaN(size)) styles.fontSize = size + 'px';
-    if (color) styles.color = color;
-    applyStyleToSelectionOrCell(styles);
-  }
-
-  // -------------------- Reemplazos en createTable y carga para añadir listeners --------------------
-  // IMPORTANTE: el siguiente fragmento debe integrarse en la parte donde creas las celdas.
-  // Si usas la función createTable que ya tienes, busca la línea donde creas `const td = tr.insertCell();`
-  // y añade inmediatamente después: `attachCellListeners(td);`
-  // También en loadFromFirestore y loadTableFromCode, después de crear cada td, llama attachCellListeners(td).
-  // Ejemplo (dentro de createTable):
-  //    const td = tr.insertCell();
-  //    td.contentEditable = "true";
-  //    attachCellListeners(td);
-  //    td.addEventListener('focus', () => activeCell = td);  // <-- ya hecho por attachCellListeners
-
-  // Para ahorrarte buscar: aquí tienes un pequeño wrapper que puedes llamar justo después de createTable(…) para
-  // añadir listeners a todas las celdas existentes (útil si no editas createTable):
-  function ensureListenersOnAllCells() {
-    for (let r = 0; r < table.rows.length; r++) {
-      for (let c = 0; c < table.rows[r].cells.length; c++) {
-        const td = table.rows[r].cells[c];
-        if (!td._listenersAttached) {
-          attachCellListeners(td);
-          td._listenersAttached = true;
-        }
+window.loadFromFirestore=async function(){
+  try{
+    const snapshot=await getDoc(doc(db,"planner","latestTable"));
+    if(!snapshot.exists()) return alert("⚠️ No hay datos guardados todavía.");
+    const data=snapshot.data();
+    const {rows,columns,cells}=data;
+    table.innerHTML=''; const occupied=Array.from({length:rows},()=>Array(columns).fill(false));
+    for(let r=0;r<rows;r++){
+      const tr=table.insertRow();
+      for(let c=0;c<columns;c++){
+        if(occupied[r][c]) continue;
+        const cellData=cells.find(cell=>cell.row===r && cell.col===c);
+        const td=tr.insertCell(); td.contentEditable="true"; attachCellListeners(td);
+        if(cellData){ td.innerHTML=cellData.text; td.style.backgroundColor=cellData.color; if(cellData.rowspan>1) td.rowSpan=cellData.rowspan;}
+        else {td.innerHTML=""; td.style.backgroundColor="#FFFFFF";}
+        for(let i=0;i<td.rowSpan;i++) if(r+i<rows) occupied[r+i][c]=true;
+        td.dataset.colorIndex=0;
+        td.addEventListener('click',()=>{if(!colorClickActive) return; let i=parseInt(td.dataset.colorIndex); i=(i+1)%cellColors.length; td.style.backgroundColor=cellColors[i]; td.dataset.colorIndex=i;});
       }
     }
-  }
+    rows_select.value=rows; columns_select.value=columns;
+    ensureListenersOnAllCells();
+    alert("✅ Tabla cargada desde Firestore.");
+  }catch(e){console.error(e); alert("❌ Error al cargar Firestore.");}
+}
 
-  // Llamar a ensureListenersOnAllCells() tras crear o cargar la tabla
-  // Por ejemplo, modifica las llamadas createTable(...) y loadFromFirestore(...) para hacer:
-  // createTable(...);
-  // ensureListenersOnAllCells();
-  // y al final de loadFromFirestore() ya llamo a ensureListenersOnAllCells() en el bloque principal.
-
-  // -------------------- loadTableFromCode (mejorada) --------------------
-  function loadTableFromCode() {
-    const code = document.getElementById('loadCode').value.trim();
-    if (!code) return alert("⚠️ Nessun codice incollato!");
-
-    try {
-      const data = JSON.parse(code);
-      const { rows, columns, cells } = data;
-      table.innerHTML = '';
-      const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
-
-      for (let r = 0; r < rows; r++) {
-        const tr = table.insertRow();
-        for (let c = 0; c < columns; c++) {
-          if (occupied[r][c]) continue;
-          const cellData = cells.find(cell => cell.row === r && cell.col === c);
-          const td = tr.insertCell();
-          td.contentEditable = "true";
-          if (cellData) {
-            td.innerHTML = cellData.text || "";
-            td.style.backgroundColor = cellData.color || "#FFFFFF";
-            if (cellData.fontFamily) td.style.fontFamily = cellData.fontFamily;
-            if (cellData.fontSize) td.style.fontSize = cellData.fontSize;
-            if (cellData.textColor) td.style.color = cellData.textColor;
-            if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
-          } else {
-            td.innerHTML = "";
-            td.style.backgroundColor = "#FFFFFF";
-          }
-
-          for (let i = 0; i < td.rowSpan; i++) {
-            if (r + i < rows) occupied[r + i][c] = true;
-          }
-
-          attachCellListeners(td);
-        }
+window.loadTableFromCode=function(){
+  const code=document.getElementById('loadCode').value.trim();
+  if(!code) return alert("⚠️ Nessun codice incollato!");
+  try{
+    const data=JSON.parse(code);
+    const {rows,columns,cells}=data;
+    table.innerHTML=''; const occupied=Array.from({length:rows},()=>Array(columns).fill(false));
+    for(let r=0;r<rows;r++){
+      const tr=table.insertRow();
+      for(let c=0;c<columns;c++){
+        if(occupied[r][c]) continue;
+        const cellData=cells.find(cell=>cell.row===r && cell.col===c);
+        const td=tr.insertCell(); td.contentEditable="true"; attachCellListeners(td);
+        if(cellData){
+          td.innerHTML=cellData.text||"";
+          td.style.backgroundColor=cellData.color||"#FFFFFF";
+          if(cellData.fontFamily) td.style.fontFamily=cellData.fontFamily;
+          if(cellData.fontSize) td.style.fontSize=cellData.fontSize;
+          if(cellData.textColor) td.style.color=cellData.textColor;
+          if(cellData.rowspan>1) td.rowSpan=cellData.rowspan;
+        } else { td.innerHTML=""; td.style.backgroundColor="#FFFFFF"; }
+        for(let i=0;i<td.rowSpan;i++) if(r+i<rows) occupied[r+i][c]=true;
       }
-
-      rows_select.value = rows;
-      columns_select.value = columns;
-
-      ensureListenersOnAllCells();
-      alert("✅ Tabella caricata dal codice!");
-    } catch (e) {
-      console.error("Errore nel codice:", e);
-      alert("❌ Codice non valido!");
     }
-  }
+    rows_select.value=rows; columns_select.value=columns;
+    ensureListenersOnAllCells();
+    alert("✅ Tabella caricata dal codice!");
+  }catch(e){console.error(e); alert("❌ Codice non valido!");}
+}
 
+window.copyTableCode=function(){
+  const textarea=document.getElementById('tableCode');
+  textarea.select();
+  document.execCommand('copy');
+  alert("📋 Copiado negli appunti!");
+}
 
-  </script>
+window.execCmd=function(command){
+  if(!activeCell) return alert("⚠️ Seleziona una cella prima!");
+  activeCell.focus();
+  document.execCommand(command,false,null);
+}
+
+window.applyFont=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value}); }
+window.applyFontSize=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); const size=document.getElementById('fontSizeInput').value; if(!size||isNaN(size)) return alert("⚠️ Inserisci un numero valido per la dimensione!"); applyStyleToSelectionOrCell({fontSize:size+'px'});}
+window.applyColor=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); applyStyleToSelectionOrCell({color:document.getElementById('fontColor').value}); }
+window.applyCellStyle=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value,fontSize:document.getElementById('fontSizeInput').value+'px',color:document.getElementById('fontColor').value}); }
+
+</script>
 
 </body>
 </html>
