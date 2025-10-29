@@ -75,7 +75,8 @@
     <button onclick="login()">Accedi Ora</button>
   </div>
 
-  <img id="toggle_image" src="https://placehold.co/1600x900" alt="Immagine">
+  <img id="toggle_image" alt="Immagine" style="display:none; max-width:100%; height:auto; border-radius:12px;">
+  <p id="no_image_msg" style="margin-top:20px; color:#777;">Nessuna immagine disponibile</p>
 
   <script>
     const defaultUser = "studioDomino";
@@ -154,7 +155,6 @@
     });
   </script>
 
-  <!-- 🔥 Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -172,22 +172,30 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Escuchar en tiempo real el documento con la imagen base64
+    const image = document.getElementById('toggle_image');
+    const msg = document.getElementById('no_image_msg');
+
+    // 🔄 Escucha en tiempo real el documento planner/latestImage
     const docRef = doc(db, 'planner', 'latestImage');
     onSnapshot(docRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         if (data.image) {
           image.src = data.image;
+          image.style.display = 'block';
+          msg.style.display = 'none';
           console.log("✅ Imagen cargada desde Firestore");
         } else {
-          console.log("⚠️ Documento existe pero no tiene 'image'");
+          image.style.display = 'none';
+          msg.style.display = 'block';
+          msg.textContent = "⚠️ Documento esiste ma non contiene 'image'";
         }
       } else {
-        console.log("⚠️ No existe aún ninguna imagen en Firestore");
+        image.style.display = 'none';
+        msg.style.display = 'block';
+        msg.textContent = "⚠️ Nessuna immagine salvata ancora";
       }
     });
   </script>
-
 </body>
 </html>
