@@ -334,15 +334,106 @@
       }
     };
 
-    // Funciones auxiliares
-    function loadTableFromCode() { /* ...mantener la tuya... */ }
-    function copyTableCode() { /* ...mantener la tuya... */ }
-    function execCmd(command) { /* ...mantener la tuya... */ }
-    function applyFont() { /* ...mantener la tuya... */ }
-    function applyFontSize() { /* ...mantener la tuya... */ }
-    function applyColor() { /* ...mantener la tuya... */ }
-    function applyCellStyle() { /* ...mantener la tuya... */ }
-    function toggleColorMode() { colorClickActive = !colorClickActive; document.getElementById('toggleColorModeBtn').textContent = colorClickActive ? "Disabilitare colore" : "Attivare colore"; }
+        // Copiar código de tabla
+    function copyTableCode() {
+      const textarea = document.getElementById('tableCode');
+      textarea.select();
+      document.execCommand('copy');
+      alert('📋 Copiato negli appunti!');
+    }
+
+    // Aplicar comandos de formato directo
+    function execCmd(command) {
+      document.execCommand(command, false, null);
+    }
+
+    // Aplica tipo de letra a la celda activa
+    function applyFont() {
+      if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
+      const font = document.getElementById('fontSelect').value;
+      activeCell.style.fontFamily = font;
+    }
+
+    // Aplica tamaño de fuente
+    function applyFontSize() {
+      if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
+      const size = document.getElementById('fontSizeInput').value;
+      activeCell.style.fontSize = size + 'px';
+    }
+
+    // Aplica color de texto
+    function applyColor() {
+      if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
+      const color = document.getElementById('fontColor').value;
+      activeCell.style.color = color;
+    }
+
+    // Aplica todos los estilos juntos (botón “Applicare”)
+    function applyCellStyle() {
+      if (!activeCell) return alert("⚠️ Seleziona una cella prima!");
+      const font = document.getElementById('fontSelect').value;
+      const size = document.getElementById('fontSizeInput').value;
+      const color = document.getElementById('fontColor').value;
+      activeCell.style.fontFamily = font;
+      activeCell.style.fontSize = size + 'px';
+      activeCell.style.color = color;
+    }
+
+    // Cargar tabla desde código (opcional)
+    function loadTableFromCode() {
+      const code = document.getElementById('loadCode').value.trim();
+      if (!code) return alert("⚠️ Nessun codice incollato!");
+
+      try {
+        const data = JSON.parse(code);
+        const { rows, columns, cells } = data;
+        table.innerHTML = '';
+        const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
+
+        for (let r = 0; r < rows; r++) {
+          const tr = table.insertRow();
+          for (let c = 0; c < columns; c++) {
+            if (occupied[r][c]) continue;
+            const cellData = cells.find(cell => cell.row === r && cell.col === c);
+            const td = tr.insertCell();
+            td.contentEditable = "true";
+            if (cellData) {
+              td.innerHTML = cellData.text;
+              td.style.backgroundColor = cellData.color;
+              td.style.fontFamily = cellData.fontFamily || 'Arial';
+              td.style.fontSize = cellData.fontSize || '16px';
+              td.style.color = cellData.textColor || '#000000';
+              if (cellData.rowspan && cellData.rowspan > 1) td.rowSpan = cellData.rowspan;
+            } else {
+              td.innerHTML = "";
+              td.style.backgroundColor = "#FFFFFF";
+            }
+
+            for (let i = 0; i < td.rowSpan; i++) {
+              if (r + i < rows) occupied[r + i][c] = true;
+            }
+
+            td.addEventListener('focus', () => activeCell = td);
+            td.dataset.colorIndex = 0;
+            td.addEventListener('click', () => {
+              if (!colorClickActive) return;
+              let index = parseInt(td.dataset.colorIndex);
+              index = (index + 1) % cellColors.length;
+              td.style.backgroundColor = cellColors[index];
+              td.dataset.colorIndex = index;
+            });
+          }
+        }
+
+        rows_select.value = rows;
+        columns_select.value = columns;
+        alert("✅ Tabella caricata dal codice!");
+      } catch (e) {
+        console.error("Errore nel codice:", e);
+        alert("❌ Codice non valido!");
+      }
+    }
+
 
   </script>
 
