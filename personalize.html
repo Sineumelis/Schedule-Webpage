@@ -206,7 +206,6 @@
 
     createTable(1, 1);
 
-    // 🚀 Generar tabla + imagen y guardar en Firestore
     window.tableToImage = async function() {
       if (!table) return alert("No hay tabla para guardar.");
 
@@ -216,6 +215,7 @@
       const cellList = [];
       const occupied = Array.from({ length: rows }, () => Array(columns).fill(false));
 
+      // 📋 Guardar datos de la tabla
       for (let r = 0; r < rows; r++) {
         let colIndex = 0;
         const tr = table.rows[r];
@@ -240,7 +240,7 @@
       }
 
       try {
-        // Guardar tabla
+        // 💾 Guardar tabla
         await setDoc(doc(db, "planner", "latestTable"), {
           rows,
           columns,
@@ -248,9 +248,28 @@
           updated: new Date().toISOString()
         });
 
-        // Guardar imagen base64
-        const canvas = await html2canvas(table, { scale: 2, backgroundColor: "#FFFFFF" });
+        // 🎨 Crear un clon invisible de la tabla sin márgenes ni padding
+        const clone = table.cloneNode(true);
+        clone.style.margin = "0";
+        clone.style.padding = "0";
+        clone.style.borderCollapse = "collapse";
+        clone.style.backgroundColor = "#FFFFFF";
+        document.body.appendChild(clone);
+
+        // 📸 Capturar solo el clon
+        const canvas = await html2canvas(clone, {
+          scale: 3, // alta resolución
+          backgroundColor: "#FFFFFF",
+          useCORS: true,
+          removeContainer: true
+        });
+
+        document.body.removeChild(clone);
+
+        // 🖼 Convertir a Base64
         const imgData = canvas.toDataURL("image/png");
+
+        // 🔥 Subir imagen a Firestore
         await setDoc(doc(db, "planner", "latestImage"), {
           image: imgData,
           updated: new Date().toISOString()
