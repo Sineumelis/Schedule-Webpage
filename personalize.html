@@ -1,5 +1,5 @@
 <!-- Tengo que recordar que tengo que añadir que a la imagen creada se le ponga el cabecero con las instituciones que tiene el horario de aquí -->
-<!-- Hacer que se guarden los datos escritos en la tabla en la nube respecto al último uso de esta online O A PARTIR DE UN CODIGO GENERADO QUE TE RESTAURE LA PAGINA, PERO PRECISO QUE SEA ONLINE PARA PODER ENTRAR EN LA PANTALLA; PODRIA HACERSE CON SOLAMENTE CHECKEAR LA IMAGEN QUE SEA LO SUBIDO ONLINE AL DARLE A GENERAR IMAGEN, tambien hacer que el codigo de dicha imagen sea el ultimo que quede ahi tras darle a generar imagen y que hasta que no se le de de nuevo no cambie, poner una confirmacion con algo para asegurarse de no darle por error, 2 confirmaciones diciendo que la accion borrará la anterior imagen -->
+<!-- HECHO Hacer que se guarden los datos escritos en la tabla en la nube respecto al último uso de esta online O A PARTIR DE UN CODIGO GENERADO QUE TE RESTAURE LA PAGINA, PERO PRECISO QUE SEA ONLINE PARA PODER ENTRAR EN LA PANTALLA; PODRIA HACERSE CON SOLAMENTE CHECKEAR LA IMAGEN QUE SEA LO SUBIDO ONLINE AL DARLE A GENERAR IMAGEN, tambien hacer que el codigo de dicha imagen sea el ultimo que quede ahi tras darle a generar imagen y que hasta que no se le de de nuevo no cambie, poner una confirmacion con algo para asegurarse de no darle por error, 2 confirmaciones diciendo que la accion borrará la anterior imagen -->
 <!-- HECHO Hacer también que pueda cambiar el color de fondo según cliquees con el ratón en la casilla -->
 <!-- HECHO Hacer lo de cada día por la mañana y por la tarde -->
 <!-- Poder editar tamaño de la celda arrastrando también(?) -->
@@ -20,7 +20,20 @@
   </style>
 </head>
 <body>
+
+
+<!-- TABLE LAYOUT -->
+
+
 <h1>Ciao</h1>
+
+  <br>
+
+<button onclick="tableToImage()">Generate Image and Save Online</button>
+
+<button onclick="loadFromFirestore()">Load Table</button>
+
+<br><br>
 
 <label>
     Lines:
@@ -58,9 +71,9 @@
     </select>
   </label>
 
-<button onclick="tableToImage()">Generate Image</button>
-
 <br><br>
+
+<!-- 
 
 <label>Codice della Tabella:</label><br>
 <textarea id="tableCode" rows="5" cols="50" readonly placeholder="Table's code"></textarea>
@@ -74,11 +87,14 @@
 
 <br><br>
 
+-->
+
 <div id="editorControls">
   <label>Lettera:
     <select id="fontSelect" onchange="applyFont()">
       <option value="Arial">Arial</option>
       <option value="Courier New">Courier New</option>
+      <option value="Myriad">Myriad</option>
       <option value="Times New Roman">Times New Roman</option>
       <option value="Verdana">Verdana</option>
     </select>
@@ -99,9 +115,12 @@
 <button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
 
 <br><br>
-<button onclick="loadFromFirestore()">Cargar desde Firestore</button>
 
 <table id="planner"></table>
+
+
+<!-- SCRIPTS -->
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -125,7 +144,6 @@ const db = getFirestore(app);
 const table = document.getElementById('planner');
 const rows_select = document.getElementById('rows_selected');
 const columns_select = document.getElementById('columns_selected');
-
 const cellColors = ["#ADD8E6","#B0C4DE","#FFB6C1","#FFA500","#90EE90","#FFFFFF"];
 let activeCell = null;
 let colorClickActive = false;
@@ -155,7 +173,7 @@ function wrapRangeWithSpan(range, styles){
 }
 
 function applyStyleToSelectionOrCell(styles){
-  if(!activeCell) return alert("⚠️ Seleziona una cella prima!");
+  if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
   const sel=window.getSelection();
   if(sel&&sel.rangeCount>0){
     const range=sel.getRangeAt(0);
@@ -279,7 +297,7 @@ window.loadFromFirestore=async function(){
   }catch(e){console.error(e); alert("❌ Error al cargar Firestore.");}
 }
 
-window.loadTableFromCode=function(){
+/*window.loadTableFromCode=function(){
   const code=document.getElementById('loadCode').value.trim();
   if(!code) return alert("⚠️ Nessun codice incollato!");
   try{
@@ -314,10 +332,10 @@ window.copyTableCode=function(){
   textarea.select();
   document.execCommand('copy');
   alert("📋 Copiado negli appunti!");
-}
+}*/
 
 window.execCmd=function(command){
-  if(!activeCell) return alert("⚠️ Seleziona una cella prima!");
+  if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
   activeCell.focus();
   document.execCommand(command,false,null);
 }
