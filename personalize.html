@@ -246,7 +246,7 @@ createTable(1,1);
 
 // BUTTON FUNCTIONS
 window.tableToImage=async function(){
-  if(!table) return alert("No hay tabla para guardar.");
+  if(!table) return alert("⚠️ No tabella per salvare. ⚠️");
   const rows=table.rows.length;
   const columns=table.rows[0]?.cells.length||0;
   const cellList=[]; const occupied=Array.from({length:rows},()=>Array(columns).fill(false));
@@ -271,8 +271,28 @@ window.tableToImage=async function(){
     const imgData=canvas.toDataURL("image/png");
     await setDoc(doc(db,"planner","latestImage"),{image:imgData,updated:new Date().toISOString()});
     alert("✅ Tabella e immagine salvate correttamente.");
-  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
+  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio. (Check error log and tell the programmer of this page)");}
 }
+
+
+  window.toggleColorMode = function () {
+    colorClickActive = !colorClickActive;
+    const btn = document.getElementById('toggleColorModeBtn');
+    btn.textContent = colorClickActive ? "Disabilitare colore" : "Attivare colore";
+  };
+
+  table.addEventListener('click', (e) => {
+    if (!colorClickActive) return;
+    const td = e.target.closest('td');
+    if (!td) return;
+    let i = parseInt(td.dataset.colorIndex || "0");
+    i = (i + 1) % 3; // tres colores
+    const colors = ["blue", "orange", "white"];
+    td.style.backgroundColor = colors[i];
+    td.dataset.colorIndex = i;
+  });
+
+
 
 window.loadFromFirestore=async function(){
   try{
@@ -297,7 +317,7 @@ window.loadFromFirestore=async function(){
     rows_select.value=rows; columns_select.value=columns;
     ensureListenersOnAllCells();
     alert("✅ Tabella e immagine salvate correttamente.");
-  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
+  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio. (Check error log and tell the programmer of this page)");}
 }
 
 /*window.loadTableFromCode=function(){
