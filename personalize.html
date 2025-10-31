@@ -93,8 +93,11 @@
   <label>Lettera:
     <select id="fontSelect" onchange="applyFont()">
       <option value="Arial">Arial</option>
+      <option value="Comic Sans">Comic Sans</option>
       <option value="Courier New">Courier New</option>
       <option value="Myriad">Myriad</option>
+      <option value="Myriad Pro">Myriad</option>
+      <option value="Papyrus">Papyrus</option>
       <option value="Times New Roman">Times New Roman</option>
       <option value="Verdana">Verdana</option>
     </select>
@@ -148,7 +151,7 @@ const cellColors = ["#ADD8E6","#B0C4DE","#FFB6C1","#FFA500","#90EE90","#FFFFFF"]
 let activeCell = null;
 let colorClickActive = false;
 
-// -------------------- UTILS --------------------
+// UTILS
 function attachCellListeners(td){
   td.addEventListener('focus',()=>activeCell=td);
   td.addEventListener('mouseup',()=>activeCell=td);
@@ -207,7 +210,7 @@ function ensureListenersOnAllCells(){
   }
 }
 
-// -------------------- TABLE --------------------
+// TABLE
 function createTable(rows,columns){
   const oldData=[];
   for(let r=0;r<table.rows.length;r++){
@@ -241,7 +244,7 @@ columns_select.addEventListener('change',()=>createTable(table.rows.length||1,pa
 
 createTable(1,1);
 
-// -------------------- BUTTON FUNCTIONS --------------------
+// BUTTON FUNCTIONS
 window.tableToImage=async function(){
   if(!table) return alert("No hay tabla para guardar.");
   const rows=table.rows.length;
@@ -267,14 +270,14 @@ window.tableToImage=async function(){
     document.body.removeChild(clone);
     const imgData=canvas.toDataURL("image/png");
     await setDoc(doc(db,"planner","latestImage"),{image:imgData,updated:new Date().toISOString()});
-    alert("✅ Tabla e imagen guardadas correctamente en Firestore.");
-  }catch(e){console.error(e); alert("❌ Error al guardar en Firestore.");}
+    alert("✅ Tabella e immagine salvate correttamente.");
+  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
 }
 
 window.loadFromFirestore=async function(){
   try{
     const snapshot=await getDoc(doc(db,"planner","latestTable"));
-    if(!snapshot.exists()) return alert("⚠️ No hay datos guardados todavía.");
+    if(!snapshot.exists()) return alert("⚠️ Nessun dato salvato. ⚠️");
     const data=snapshot.data();
     const {rows,columns,cells}=data;
     table.innerHTML=''; const occupied=Array.from({length:rows},()=>Array(columns).fill(false));
@@ -293,8 +296,8 @@ window.loadFromFirestore=async function(){
     }
     rows_select.value=rows; columns_select.value=columns;
     ensureListenersOnAllCells();
-    alert("✅ Tabla cargada desde Firestore.");
-  }catch(e){console.error(e); alert("❌ Error al cargar Firestore.");}
+    alert("✅ Tabella e immagine salvate correttamente.");
+  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
 }
 
 /*window.loadTableFromCode=function(){
@@ -340,10 +343,10 @@ window.execCmd=function(command){
   document.execCommand(command,false,null);
 }
 
-window.applyFont=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value}); }
-window.applyFontSize=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); const size=document.getElementById('fontSizeInput').value; if(!size||isNaN(size)) return alert("⚠️ Inserisci un numero valido per la dimensione!"); applyStyleToSelectionOrCell({fontSize:size+'px'});}
+window.applyFont=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value}); }
+window.applyFontSize=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); const size=document.getElementById('fontSizeInput').value; if(!size||isNaN(size)) return alert("⚠️ Inserisci un numero valido per la dimensione! ⚠️"); applyStyleToSelectionOrCell({fontSize:size+'px'});}
 window.applyColor=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); applyStyleToSelectionOrCell({color:document.getElementById('fontColor').value}); }
-window.applyCellStyle=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value,fontSize:document.getElementById('fontSizeInput').value+'px',color:document.getElementById('fontColor').value}); }
+window.applyCellStyle=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value,fontSize:document.getElementById('fontSizeInput').value+'px',color:document.getElementById('fontColor').value}); }
 
 </script>
 
