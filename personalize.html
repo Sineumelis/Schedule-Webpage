@@ -9,15 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Personalizza Tabella</title>
-
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f0f0f0; }
-    select, button { padding: 5px 10px; margin-right: 10px; margin-left: 20px; }
-    table { border-collapse: collapse; width: 100%; max-width: 1600px; background-color: #fff; }
-    table, th, td { border: 1px solid #828282; }
-    td { width: 120px; height: 70px; text-align: center; vertical-align: middle; cursor: text; }
-    td:focus { outline: 2px solid #007bff; }
-  </style>
+  <link rel="stylesheet" href="personalize-style.css">
 </head>
 <body>
 
@@ -95,8 +87,7 @@
       <option value="Arial">Arial</option>
       <option value="Comic Sans">Comic Sans</option>
       <option value="Courier New">Courier New</option>
-      <option value="Myriad">Myriad</option>
-      <option value="Myriad Pro">Myriad</option>
+      <option value="Myriad Pro">Myriad Pro</option>
       <option value="Papyrus">Papyrus</option>
       <option value="Times New Roman">Times New Roman</option>
       <option value="Verdana">Verdana</option>
@@ -320,7 +311,10 @@ window.loadFromFirestore=async function(){
   }catch(e){console.error(e); alert("❌ Errore durante il salvataggio. (Check error log and tell the programmer of this page)");}
 }
 
-/*window.loadTableFromCode=function(){
+/*
+This was for loading locally
+
+window.loadTableFromCode=function(){
   const code=document.getElementById('loadCode').value.trim();
   if(!code) return alert("⚠️ Nessun codice incollato!");
   try{

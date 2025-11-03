@@ -1,0 +1,52 @@
+@font-face {
+  font-family: 'Myriad Pro';
+  src: url("fonts/Myriad Pro Regular.woff2") format('woff2'),
+       url("fonts/Myriad Pro Regular.ttf") format('truetype');
+}
+
+@font-face {
+  font-family: 'Papyrus';
+  src: url("fonts/papyrus.ttf") format('truetype');
+}
+
+@font-face {
+  font-family: 'Comic Sans';
+  src: url("fonts/COMIC.ttf") format('truetype');
+}
+
+
+
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f0f0f0;
+}
+
+select, button {
+  padding: 5px 10px;
+  margin-right: 10px;
+  margin-left: 20px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 1600px;
+  background-color: #fff;
+}
+
+table, th, td {
+  border: 1px solid #828282;
+}
+
+td {
+  width: 120px;
+  height: 70px;
+  text-align: center;
+  vertical-align: middle;
+  cursor: text;
+}
+
+td:focus {
+  outline: 2px solid #007bff;
+}
