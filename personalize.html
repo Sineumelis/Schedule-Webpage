@@ -3,6 +3,11 @@
 <!-- HECHO Hacer también que pueda cambiar el color de fondo según cliquees con el ratón en la casilla -->
 <!-- HECHO Hacer lo de cada día por la mañana y por la tarde -->
 <!-- Poder editar tamaño de la celda arrastrando también(?) -->
+
+
+<!-- Background editable subiendo imagen -->
+
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -24,6 +29,11 @@
 <button onclick="tableToImage()">Generate Image and Save Online</button>
 
 <button onclick="loadFromFirestore()">Load Table</button>
+
+
+<!--
+
+This was to make customizable the amount of rows and columns
 
 <br><br>
 
@@ -64,8 +74,7 @@
   </label>
 
 <br><br>
-
-<!-- 
+ 
 
 <label>Codice della Tabella:</label><br>
 <textarea id="tableCode" rows="5" cols="50" readonly placeholder="Table's code"></textarea>
@@ -77,9 +86,11 @@
 <textarea id="loadCode" rows="5" cols="50" placeholder="Paste code here"></textarea>
 <button onclick="loadTableFromCode()">Load table</button>
 
+-->
+
 <br><br>
 
--->
+
 
 <div id="editorControls">
   <label>Lettera:
@@ -95,7 +106,7 @@
   </label>
 
   <label>Misurare:
-    <input type="number" min="1" value="16" id="fontSizeInput" onchange="applyFontSize()">
+    <input type="number" min="1" value="24" id="fontSizeInput" onchange="applyFontSize()">
   </label>
 
   <button onclick="execCmd('bold')"><b>B</b></button>
@@ -202,14 +213,32 @@ function ensureListenersOnAllCells(){
 }
 
 // TABLE
-function createTable(rows,columns){
-  const oldData=[];
+function createTable(/*rows,columns*/){
+
+//This was to make customizable the amount of rows and columns
+  /*const oldData=[];
   for(let r=0;r<table.rows.length;r++){
     oldData[r]=[];
     for(let c=0;c<table.rows[r].cells.length;c++){
       oldData[r][c]={text:table.rows[r].cells[c].innerHTML,color:table.rows[r].cells[c].style.backgroundColor||"#FFFFFF",rowspan:table.rows[r].cells[c].rowSpan||1};
     }
+  }*/
+
+    const rows = 10;
+  const columns = 8;
+  const oldData = [];
+
+  for(let r=0;r<table.rows.length;r++){
+    oldData[r] = [];
+    for(let c=0;c<table.rows[r].cells.length;c++){
+      oldData[r][c] = {
+        text: table.rows[r].cells[c].innerHTML,
+        color: table.rows[r].cells[c].style.backgroundColor || "#FFFFFF",
+        rowspan: table.rows[r].cells[c].rowSpan || 1
+      };
+    }
   }
+
   table.innerHTML='';
   for(let r=0;r<rows;r++){
     const tr=table.insertRow();
@@ -220,20 +249,23 @@ function createTable(rows,columns){
       attachCellListeners(td);
       if(c==0 && r%2==0 && r+1<rows) td.rowSpan=2;
       if(oldData[r] && oldData[r][c]!==undefined){
-        td.innerHTML=oldData[r][c].text;
-        td.style.backgroundColor=oldData[r][c].color;
+        td.innerHTML = oldData[r][c].text;
+        td.style.backgroundColor = oldData[r][c].color;
       }
-      td.dataset.colorIndex=0;
-      td.addEventListener('click',()=>{if(!colorClickActive) return; let i=parseInt(td.dataset.colorIndex); i=(i+1)%cellColors.length; td.style.backgroundColor=cellColors[i]; td.dataset.colorIndex=i;});
+      td.dataset.colorIndex = 0;
+      td.addEventListener('click',()=>{
+        if(!colorClickActive) return;
+        let i = parseInt(td.dataset.colorIndex);
+        i = (i+1)%cellColors.length;
+        td.style.backgroundColor = cellColors[i];
+        td.dataset.colorIndex = i;
+      });
     }
   }
   ensureListenersOnAllCells();
 }
 
-rows_select.addEventListener('change',()=>createTable(parseInt(rows_select.value),table.rows[0]?.cells.length||1));
-columns_select.addEventListener('change',()=>createTable(table.rows.length||1,parseInt(columns_select.value)));
-
-createTable(1,1);
+createTable();
 
 // BUTTON FUNCTIONS
 window.tableToImage=async function(){
