@@ -30,6 +30,10 @@
 
 <button onclick="loadFromFirestore()">Load Table</button>
 
+<button onclick="document.getElementById('bgInput').click()">Upload Background</button>
+<input type="file" id="bgInput" accept="image/*" style="display:none" onchange="uploadBackground(event)">
+
+
 
 <!--
 
@@ -145,6 +149,50 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// === Upload and Load Background using Firestore ===
+
+window.uploadBackground = async function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+
+  reader.onload = async function(e) {
+    const base64Image = e.target.result;
+    try {
+      await setDoc(doc(db, "planner", "background"), {
+        image: base64Image,
+        updated: new Date().toISOString()
+      });
+      document.body.style.backgroundImage = `url(${base64Image})`;
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundPosition = "center";
+      alert("✅ Fondo subido y guardado correctamente en Firestore.");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error al guardar el fondo en Firestore.");
+    }
+  };
+
+  reader.readAsDataURL(file);
+};
+
+// Cargar fondo guardado al iniciar
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const snap = await getDoc(doc(db, "planner", "background"));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.image) {
+        document.body.style.backgroundImage = `url(${data.image})`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+      }
+    }
+  } catch (e) {
+    console.error("Error cargando fondo:", e);
+  }
+});
 
 const table = document.getElementById('planner');
 const rows_select = document.getElementById('rows_selected');
@@ -294,7 +342,7 @@ window.tableToImage=async function(){
     const imgData=canvas.toDataURL("image/png");
     await setDoc(doc(db,"planner","latestImage"),{image:imgData,updated:new Date().toISOString()});
     alert("✅ Tabella e immagine salvate correttamente.");
-  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio. (Check error log and tell the programmer of this page)");}
+  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
 }
 
 
@@ -340,7 +388,7 @@ window.loadFromFirestore=async function(){
     rows_select.value=rows; columns_select.value=columns;
     ensureListenersOnAllCells();
     alert("✅ Tabella e immagine salvate correttamente.");
-  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio. (Check error log and tell the programmer of this page)");}
+  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
 }
 
 /*
