@@ -33,8 +33,6 @@
 <button onclick="document.getElementById('bgInput').click()">Upload Background</button>
 <input type="file" id="bgInput" accept="image/*" style="display:none" onchange="uploadBackground(event)">
 
-
-
 <!--
 
 This was to make customizable the amount of rows and columns
@@ -78,7 +76,6 @@ This was to make customizable the amount of rows and columns
   </label>
 
 <br><br>
- 
 
 <label>Codice della Tabella:</label><br>
 <textarea id="tableCode" rows="5" cols="50" readonly placeholder="Table's code"></textarea>
@@ -93,8 +90,6 @@ This was to make customizable the amount of rows and columns
 -->
 
 <br><br>
-
-
 
 <div id="editorControls">
   <label>Lettera:
@@ -129,7 +124,6 @@ This was to make customizable the amount of rows and columns
 
 
 <!-- SCRIPTS -->
-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -167,10 +161,10 @@ window.uploadBackground = async function(event) {
       document.body.style.backgroundImage = `url(${base64Image})`;
       document.body.style.backgroundSize = "cover";
       document.body.style.backgroundPosition = "center";
-      alert("✅ Fondo subido y guardado correctamente en Firestore.");
+      alert("✅ Background salvato.");
     } catch (err) {
       console.error(err);
-      alert("❌ Error al guardar el fondo en Firestore.");
+      alert("❌ Errore background.");
     }
   };
 

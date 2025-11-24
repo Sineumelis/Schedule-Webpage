@@ -18,6 +18,8 @@
   <img id="toggle_image" alt="Immagine" style="display:none; max-width:100%; height:auto; border-radius:12px;">
   <p id="no_image_msg" style="margin-top:20px; color:#777;">Nessuna immagine disponibile</p>
 
+  <!-- SCRIPTS -->
+
   <script>
     const defaultUser = "studioDomino";
     const defaultPassword = "1234";
@@ -64,24 +66,28 @@
       if (!isExpanded) {
         const overlay = document.createElement('div');
         overlay.className = 'full_screen';
+        overlay.style.backgroundImage = document.body.style.backgroundImage;
+        overlay.style.backgroundSize = "cover";
+        overlay.style.backgroundPosition = "center";
         overlay.style.display = 'flex';
         overlay.style.flexDirection = 'column';
         overlay.style.alignItems = 'center';
-        overlay.style.justifyContent = 'flex-start';
+        overlay.style.justifyContent = 'center';
         overlay.style.cursor = 'pointer';
 
-        const headerImg = document.createElement('img');
+        /*const headerImg = document.createElement('img');
         headerImg.src = 'cabecero.jpeg'; // cabecera
         headerImg.style.width = '100%';
         headerImg.style.maxHeight = '150px';
         headerImg.style.objectFit = 'cover';
-        overlay.appendChild(headerImg);
+        overlay.appendChild(headerImg);*/
 
         const fullImg = document.createElement('img');
         fullImg.src = image.src;
         fullImg.style.maxWidth = '100%';
-        fullImg.style.maxHeight = 'calc(100% - 150px)';
+        fullImg.style.maxHeight = '80%';
         fullImg.style.objectFit = 'contain';
+        fullImg.style.marginTop = "40px";
         overlay.appendChild(fullImg);
 
         overlay.addEventListener('click', () => {
@@ -136,6 +142,23 @@
         msg.textContent = "⚠️ Nessuna immagine salvata ancora";
       }
     });
+
+    const bgRef = doc(db, 'planner', 'background');
+
+    onSnapshot(bgRef, (snapshot) => {
+      if (snapshot.exists() && snapshot.data().image) {
+        const bg = snapshot.data().image;
+        document.body.style.backgroundImage = `url(${bg})`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+        document.body.style.backgroundRepeat = "no-repeat";
+
+        console.log("🎨 Fondo cargado correctamente.");
+      } else {
+        console.log("⚠️ Nessun background salvato ancora.");
+      }
+    });
   </script>
+
 </body>
 </html>
