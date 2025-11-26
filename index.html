@@ -21,8 +21,6 @@
   <!-- SCRIPTS -->
 
   <script>
-    const defaultUser = "studioDomino";
-    const defaultPassword = "1234";
 
     function showNotification(message, duration = 2000) {
       const notif = document.createElement('div');
@@ -48,6 +46,12 @@
       }, duration);
     }
 
+    /*
+    This was for a local login
+
+    const defaultUser = "studioDomino";
+    const defaultPassword = "1234";
+
     function login() {
       const user = document.getElementById('username').value;
       const password = document.getElementById('password').value;
@@ -58,52 +62,46 @@
         showNotification("Nome utente o password errati");
       }
     }
+    */
 
     const image = document.getElementById('toggle_image');
     let isExpanded = false;
 
-    image.addEventListener('click', () => {
-      if (!isExpanded) {
-        const overlay = document.createElement('div');
-        overlay.className = 'full_screen';
-        overlay.style.backgroundImage = document.body.style.backgroundImage;
-        overlay.style.backgroundSize = "cover";
-        overlay.style.backgroundPosition = "center";
-        overlay.style.display = 'flex';
-        overlay.style.flexDirection = 'column';
-        overlay.style.alignItems = 'center';
-        overlay.style.justifyContent = 'center';
-        overlay.style.cursor = 'pointer';
+      image.addEventListener('click', () => {
+    if (!isExpanded) {
+      const overlay = document.createElement('div');
+      overlay.className = 'full_screen';
+      overlay.style.backgroundImage = document.body.style.backgroundImage;
+      overlay.style.backgroundSize = "cover";
+      overlay.style.backgroundPosition = "center";
+      overlay.style.cursor = 'pointer';
 
-        /*const headerImg = document.createElement('img');
-        headerImg.src = 'cabecero.jpeg'; // cabecera
-        headerImg.style.width = '100%';
-        headerImg.style.maxHeight = '150px';
-        headerImg.style.objectFit = 'cover';
-        overlay.appendChild(headerImg);*/
+      const fullImg = document.createElement('img');
+      fullImg.src = image.src;
 
-        const fullImg = document.createElement('img');
-        fullImg.src = image.src;
-        fullImg.style.maxWidth = '100%';
-        fullImg.style.maxHeight = '80%';
-        fullImg.style.objectFit = 'contain';
-        fullImg.style.marginTop = "40px";
-        overlay.appendChild(fullImg);
+      fullImg.style.width = "1500px";  
+      fullImg.style.height = "600px";  
+      fullImg.style.display = "block";  
+      fullImg.style.marginTop = "100px"; 
 
-        overlay.addEventListener('click', () => {
-          overlay.remove();
-          isExpanded = false;
-        });
+      overlay.appendChild(fullImg);
 
-        document.body.appendChild(overlay);
-        isExpanded = true;
-      }
-    });
+      overlay.addEventListener('click', () => {
+        overlay.remove();
+        isExpanded = false;
+      });
+
+      document.body.appendChild(overlay);
+      isExpanded = true;
+    }
+  });
+
   </script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
@@ -117,11 +115,24 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    window.login = async function () {
+    const email = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "personalize.html";
+      } catch (error) {
+        showNotification("Credenziali non valide");
+        console.error(error);
+      }
+    };
 
     const image = document.getElementById('toggle_image');
     const msg = document.getElementById('no_image_msg');
 
-    // 🔄 Escucha en tiempo real el documento planner/latestImage
     const docRef = doc(db, 'planner', 'latestImage');
     onSnapshot(docRef, (snapshot) => {
       if (snapshot.exists()) {
