@@ -1,573 +1,443 @@
-<!-- Tengo que recordar que tengo que añadir que a la imagen creada se le ponga el cabecero con las instituciones que tiene el horario de aquí -->
-<!-- HECHO Hacer que se guarden los datos escritos en la tabla en la nube respecto al último uso de esta online O A PARTIR DE UN CODIGO GENERADO QUE TE RESTAURE LA PAGINA, PERO PRECISO QUE SEA ONLINE PARA PODER ENTRAR EN LA PANTALLA; PODRIA HACERSE CON SOLAMENTE CHECKEAR LA IMAGEN QUE SEA LO SUBIDO ONLINE AL DARLE A GENERAR IMAGEN, tambien hacer que el codigo de dicha imagen sea el ultimo que quede ahi tras darle a generar imagen y que hasta que no se le de de nuevo no cambie, poner una confirmacion con algo para asegurarse de no darle por error, 2 confirmaciones diciendo que la accion borrará la anterior imagen -->
-<!-- HECHO Hacer también que pueda cambiar el color de fondo según cliquees con el ratón en la casilla -->
-<!-- HECHO Hacer lo de cada día por la mañana y por la tarde -->
-<!-- Poder editar tamaño de la celda arrastrando también(?) -->
+  <!DOCTYPE html>
+  <html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Personalizza Tabella</title>
+    <link rel="stylesheet" href="personalize-style.css">
+  </head>
+  <body>
 
 
-<!-- Background editable subiendo imagen -->
+  <!-- TABLE LAYOUT -->
 
+  <h1>Ciao</h1>
 
-<!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Personalizza Tabella</title>
-  <link rel="stylesheet" href="personalize-style.css">
-</head>
-<body>
+  <br>
 
+  <button onclick="tableToImage()">Generate Image and Save Online</button>
 
-<!-- TABLE LAYOUT -->
+  <button onclick="loadFromFirestore()">Load Table</button>
 
+  <button onclick="document.getElementById('bgInput').click()">Upload Background</button>
+  <input type="file" id="bgInput" accept="image/*" style="display:none" onchange="uploadBackground(event)">
 
-<h1>Ciao</h1>
+  <br><br>
 
-<br>
+  <div id="editorControls">
+    <label>Lettera:
+      <select id="fontSelect" onchange="applyFont()">
+        <option value="Arial">Arial</option>
+        <option value="Comic Sans">Comic Sans</option>
+        <option value="Courier New">Courier New</option>
+        <option value="Myriad Pro">Myriad Pro</option>
+        <option value="Papyrus">Papyrus</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Verdana">Verdana</option>
+      </select>
+    </label>
 
-<button onclick="tableToImage()">Generate Image and Save Online</button>
+    <label>Misurare:
+      <input type="number" min="1" value="24" id="fontSizeInput" onchange="applyFontSize()">
+    </label>
 
-<button onclick="loadFromFirestore()">Load Table</button>
+    <button onclick="execCmd('bold')"><b>B</b></button>
+    <button onclick="execCmd('italic')"><i>I</i></button>
+    <button onclick="execCmd('underline')"><u>U</u></button>
+    <input type="color" id="fontColor" onchange="applyColor()" value="#000000">
+    <button onclick="applyCellStyle()">Applicare</button>
+  </div>
 
-<button onclick="document.getElementById('bgInput').click()">Upload Background</button>
-<input type="file" id="bgInput" accept="image/*" style="display:none" onchange="uploadBackground(event)">
+  <br>
+  <button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
 
-<!--
-
-This was to make customizable the amount of rows and columns
-
-<br><br>
-
-<label>
-    Lines:
-    <select id="rows_selected">
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-      <option value="7">7</option>
-      <option value="8">8</option>
-      <option value="9">9</option>
-      <option value="10">10</option>
-      <option value="11">11</option>
-      <option value="12">12</option>
-    </select>
+  <label>Background:
+    <input type="color" id="bgColorPicker" value="#ffffff">
   </label>
 
-  <label>
-    Columns:
-    <select id="columns_selected">
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-      <option value="7">7</option>
-      <option value="8">8</option>
-      <option value="9">9</option>
-      <option value="10">10</option>
-      <option value="11">11</option>
-      <option value="12">12</option>
-    </select>
-  </label>
+  <br><br>
 
-<br><br>
-
-<label>Codice della Tabella:</label><br>
-<textarea id="tableCode" rows="5" cols="50" readonly placeholder="Table's code"></textarea>
-<button onclick="copyTableCode()">Copy Code</button>
-
-<br><br>
-
-<label>Inserisci il Codice della Tabella:</label><br>
-<textarea id="loadCode" rows="5" cols="50" placeholder="Paste code here"></textarea>
-<button onclick="loadTableFromCode()">Load table</button>
-
--->
-
-<br><br>
-
-<div id="editorControls">
-  <label>Lettera:
-    <select id="fontSelect" onchange="applyFont()">
-      <option value="Arial">Arial</option>
-      <option value="Comic Sans">Comic Sans</option>
-      <option value="Courier New">Courier New</option>
-      <option value="Myriad Pro">Myriad Pro</option>
-      <option value="Papyrus">Papyrus</option>
-      <option value="Times New Roman">Times New Roman</option>
-      <option value="Verdana">Verdana</option>
-    </select>
-  </label>
-
-  <label>Misurare:
-    <input type="number" min="1" value="24" id="fontSizeInput" onchange="applyFontSize()">
-  </label>
-
-  <button onclick="execCmd('bold')"><b>B</b></button>
-  <button onclick="execCmd('italic')"><i>I</i></button>
-  <button onclick="execCmd('underline')"><u>U</u></button>
-  <input type="color" id="fontColor" onchange="applyColor()" value="#000000">
-  <button onclick="applyCellStyle()">Applicare</button>
-</div>
-
-<br>
-<button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
-
-<br><br>
-
-<table id="planner"></table>
+  <table id="planner"></table>
 
 
-<!-- SCRIPTS -->
+  <!-- SCRIPTS -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  <script type="module">
+    //Firebase imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
-    authDomain: "schedule-it-69420.firebaseapp.com",
-    projectId: "schedule-it-69420",
-    storageBucket: "schedule-it-69420.appspot.com",
-    messagingSenderId: "541795813911",
-    appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
-    measurementId: "G-K5BR2NTY3C"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-// === Upload and Load Background using Firestore ===
-
-  window.uploadBackground = async function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-
-    reader.onload = async function(e) {
-      const base64Image = e.target.result;
-      try {
-        await setDoc(doc(db, "planner", "background"), {
-          image: base64Image,
-          updated: new Date().toISOString()
-        });
-        document.body.style.backgroundImage = `url(${base64Image})`;
-        document.body.style.backgroundSize = "cover";
-        document.body.style.backgroundPosition = "center";
-        alert("✅ Background salvato.");
-      } catch (err) {
-        console.error(err);
-        alert("❌ Errore background.");
-      }
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
+      authDomain: "schedule-it-69420.firebaseapp.com",
+      projectId: "schedule-it-69420",
+      storageBucket: "schedule-it-69420.appspot.com",
+      messagingSenderId: "541795813911",
+      appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
+      measurementId: "G-K5BR2NTY3C"
     };
 
-    reader.readAsDataURL(file);
-  };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-// Cargar fondo guardado al iniciar
-  window.addEventListener("DOMContentLoaded", async () => {
-    try {
-      const snap = await getDoc(doc(db, "planner", "background"));
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.image) {
-          document.body.style.backgroundImage = `url(${data.image})`;
+    window.uploadBackground = async function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+
+      reader.onload = async function(e) {
+        const base64Image = e.target.result;
+        try {
+          await setDoc(doc(db, "planner", "background"), {
+            image: base64Image,
+            updated: new Date().toISOString()
+          });
+          document.body.style.backgroundImage = `url(${base64Image})`;
           document.body.style.backgroundSize = "cover";
           document.body.style.backgroundPosition = "center";
+          alert("✅ Background salvato.");
+        } catch (err) {
+          console.error(err);
+          alert("❌ Errore background.");
         }
-      }
-    } catch (e) {
-      console.error("Error cargando fondo:", e);
-    }
-  });
+      };
 
-  const table = document.getElementById('planner');
-  const rows_select = document.getElementById('rows_selected');
-  const columns_select = document.getElementById('columns_selected');
-  const cellColors = ["#ADD8E6","#B0C4DE","#FFB6C1","#FFA500","#90EE90","#FFFFFF"];
-  let activeCell = null;
-  let colorClickActive = false;
-
-// UTILS
-  function attachCellListeners(td){
-    td.addEventListener('focus',()=>activeCell=td);
-    td.addEventListener('mouseup',()=>activeCell=td);
-    td.addEventListener('keyup',()=>activeCell=td);
-    td.addEventListener('pointerdown',()=>activeCell=td);
-    if(!td.dataset.colorIndex) td.dataset.colorIndex=0;
-  }
-
-  function isNodeInside(node, container){
-    if(!node||!container) return false;
-    let cur=node.nodeType===3?node.parentNode:node;
-    while(cur){if(cur===container) return true; cur=cur.parentNode;}
-    return false;
-  }
-
-  function wrapRangeWithSpan(range, styles){
-    const span=document.createElement('span');
-    for(const k in styles) span.style[k]=styles[k];
-      span.appendChild(range.extractContents());
-    range.insertNode(span);
-    return span;
-  }
-
-  function applyStyleToSelectionOrCell(styles){
-    if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
-    const sel=window.getSelection();
-    if(sel&&sel.rangeCount>0){
-      const range=sel.getRangeAt(0);
-      if(isNodeInside(range.commonAncestorContainer,activeCell)){
-        if(sel.isCollapsed){
-          const span=document.createElement('span');
-          for(const k in styles) span.style[k]=styles[k];
-            span.innerHTML='\u200B';
-          range.insertNode(span);
-          sel.removeAllRanges();
-          const newRange=document.createRange();
-          newRange.setStart(span,1); newRange.collapse(true);
-          sel.addRange(newRange);
-          return;
-        } else {
-          wrapRangeWithSpan(range,styles);
-          sel.removeAllRanges();
-          return;
-        }
-      }
-    }
-    for(const k in styles) activeCell.style[k]=styles[k];
-  }
-
-function ensureListenersOnAllCells(){
-  for(let r=0;r<table.rows.length;r++){
-    for(let c=0;c<table.rows[r].cells.length;c++){
-      const td=table.rows[r].cells[c];
-      if(!td._listenersAttached){attachCellListeners(td); td._listenersAttached=true;}
-    }
-  }
-}
-
-// TABLE
-function createTable(/*rows,columns*/){
-
-//This was to make customizable the amount of rows and columns
-  /*const oldData=[];
-  for(let r=0;r<table.rows.length;r++){
-    oldData[r]=[];
-    for(let c=0;c<table.rows[r].cells.length;c++){
-      oldData[r][c]={text:table.rows[r].cells[c].innerHTML,color:table.rows[r].cells[c].style.backgroundColor||"#FFFFFF",rowspan:table.rows[r].cells[c].rowSpan||1};
-    }
-  }*/
-
-const rows = 10;
-const columns = 6;
-const oldData = [];
-
-for(let r=0;r<table.rows.length;r++){
-  oldData[r] = [];
-  for(let c=0;c<table.rows[r].cells.length;c++){
-    oldData[r][c] = {
-      text: table.rows[r].cells[c].innerHTML,
-      color: table.rows[r].cells[c].style.backgroundColor || "#FFFFFF",
-      rowspan: table.rows[r].cells[c].rowSpan || 1
-    };
-  }
-}
-
-table.innerHTML='';
-
-const topRow = table.insertRow();
-const topCell1 = topRow.insertCell();
-topCell1.colSpan = 2;
-topCell1.textContent = "",
-topCell1.contentEditable = "true";         
-attachCellListeners(topCell1);              
-
-const topCell2 = topRow.insertCell();
-topCell2.colSpan = 4;
-topCell2.textContent = "Aule",
-topCell2.contentEditable = "true";          
-attachCellListeners(topCell2);              
-
-for(let r=0;r<rows;r++){
-  const tr=table.insertRow();
-  for(let c=0;c<columns;c++){
-    if(r>0 && c==0 && table.rows[r]?.cells[0]?.rowSpan==2) continue;
-    const td=tr.insertCell();
-    td.contentEditable="true";
-    attachCellListeners(td);
-
-    if(c==0 && r%2==0 && r+1<rows) td.rowSpan=2;
-
-      /*if(oldData[r] && oldData[r][c]!==undefined){
-        td.innerHTML = oldData[r][c].text;
-        td.style.backgroundColor = oldData[r][c].color;
-      }*/
-
-    const defaultCellText = {
-
-      "top,0": "Titolo sinistra",
-      "top,1": "Titolo destra",
-
-      "head2,0": "Colonna 1",
-      "head2,1": "Colonna 2",
-      "head2,2": "Colonna 3",
-      "head2,3": "Colonna 4",
-      "head2,4": "Colonna 5",
-      "head2,5": "Colonna 6",
-
-      "0,0": "Lunedì",
-      "0,1": "Mattina",
-      "1,1": "Pomeriggio",
-      "2,0": "Martedì",
-      "2,1": "Mattina",
-      "3,1": "Pomeriggio",
-      "4,0": "Mercoledì",
-      "4,1": "Mattina",
-      "5,1": "Pomeriggio",
-      "6,0": "Giovedì",
-      "6,1": "Mattina",
-      "7,1": "Pomeriggio",
-      "8,0": "Venerdì",
-      "8,1": "Mattina",
-      "9,1": "Pomeriggio",
-      "10,0": "Venerdì",
-      "10,1": "Mattina",
-      "11,1": "Pomeriggio",
+      reader.readAsDataURL(file);
     };
 
-    const key = `${r},${c}`;
-    if(oldData[r] && oldData[r][c] !== undefined){
-      td.innerHTML = oldData[r][c].text;
-      td.style.backgroundColor = oldData[r][c].color;
-    } else if(defaultCellText[key]) {
-      td.innerHTML = defaultCellText[key];
-    } else {
-          td.innerHTML = ""; // vacío si no está en el mapa
-        }
-
-
-        td.dataset.colorIndex = 0;
-        td.addEventListener('click',()=>{
-          if(!colorClickActive) return;
-          let i = parseInt(td.dataset.colorIndex);
-          i = (i+1)%cellColors.length;
-          td.style.backgroundColor = cellColors[i];
-          td.dataset.colorIndex = i;
-        });
-      }
-    }
-
-    const textos = ["GIORNO", "ORA", "GUGLIERMO MARCONI", "ENRICO FERMI", "RITA LEVI MONTALCINI", "MARGHERITA HACK"];
-    const headerRow2 = table.insertRow(1); // Insertar como segunda fila REAL
-    for (let c = 0; c < 6; c++) {
-      const td = headerRow2.insertCell();
-      td.textContent = textos[c];
-      td.contentEditable = "true";
-      attachCellListeners(td);
-      td.dataset.colorIndex = 0;
-    }
-
-  ensureListenersOnAllCells();
-}
-
-
-createTable();
-
-// BUTTON FUNCTIONS
-window.tableToImage = async function(){
-  if(!table) return alert("⚠️ No tabella per salvare. ⚠️");
-  const rows = table.rows.length;
-  const cellList = [];
-  const occupied = new Set(); // marca posiciones "r,c" ocupadas
-  let maxColIndex = -1;
-
-  for(let r=0;r<rows;r++){
-    let colIndex = 0;
-    const tr = table.rows[r];
-    for(let ci=0; ci<tr.cells.length; ci++){
-      // avanzar hasta la primera columna libre
-      while(occupied.has(`${r},${colIndex}`)) colIndex++;
-      const td = tr.cells[ci];
-      const rowspan = td.rowSpan || 1;
-      const colspan = td.colSpan || 1;
-      // guardar celda
-      cellList.push({
-        row: r,
-        col: colIndex,
-        text: td.innerHTML,
-        color: td.style.backgroundColor || "#FFFFFF",
-        rowspan: rowspan,
-        colspan: colspan
-      });
-      // marcar ocupadas (rowspan x colspan)
-      for(let rr = 0; rr < rowspan; rr++){
-        for(let cc = 0; cc < colspan; cc++){
-          occupied.add(`${r+rr},${colIndex+cc}`);
-        }
-      }
-      // actualizar maxColIndex
-      maxColIndex = Math.max(maxColIndex, colIndex + colspan - 1);
-      colIndex += colspan;
-    }
-  }
-
-  const columns = Math.max(0, maxColIndex + 1);
-
-  try{
-    await setDoc(doc(db,"planner","latestTable"),{
-      rows,
-      columns,
-      cells: cellList,
-      updated: new Date().toISOString()
-    });
-
-    // igual que antes: generar imagen y guardar
-    const clone = table.cloneNode(true);
-    clone.style.margin="0"; clone.style.padding="0"; clone.style.borderCollapse="collapse"; clone.style.backgroundColor="#FFFFFF";
-    document.body.appendChild(clone);
-    const canvas = await html2canvas(clone,{scale:3,backgroundColor:"#FFFFFF",useCORS:true,removeContainer:true});
-    document.body.removeChild(clone);
-    const imgData = canvas.toDataURL("image/png");
-    await setDoc(doc(db,"planner","latestImage"),{image:imgData,updated:new Date().toISOString()});
-    alert("✅ Tabella e immagine salvate correttamente.");
-  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
-}
-
-
-
-window.toggleColorMode = function () {
-  colorClickActive = !colorClickActive;
-  const btn = document.getElementById('toggleColorModeBtn');
-  btn.textContent = colorClickActive ? "Disabilitare colore" : "Attivare colore";
-};
-
-table.addEventListener('click', (e) => {
-  if (!colorClickActive) return;
-  const td = e.target.closest('td');
-  if (!td) return;
-  let i = parseInt(td.dataset.colorIndex || "0");
-    i = (i + 1) % 3; // tres colores
-    const colors = ["blue", "orange", "white"];
-    td.style.backgroundColor = colors[i];
-    td.dataset.colorIndex = i;
-  });
-
-
-
-window.loadFromFirestore = async function(){
-  try{
-    const snapshot = await getDoc(doc(db,"planner","latestTable"));
-    if(!snapshot.exists()) return alert("⚠️ Nessun dato salvato. ⚠️");
-    const data = snapshot.data();
-    const {rows, columns, cells} = data;
-    table.innerHTML = '';
-    const occupied = new Set(); // marcará "r,c" ocupadas
-
-    for(let r = 0; r < rows; r++){
-      const tr = table.insertRow();
-      for(let c = 0; c < columns; c++){
-        if(occupied.has(`${r},${c}`)) continue; // ya ocupada por rowspan/colspan previa
-        // buscar la celda que comienza en r,c
-        const cellData = cells.find(cell => cell.row === r && cell.col === c);
-        const td = tr.insertCell();
-        td.contentEditable = "true";
-        attachCellListeners(td);
-
-        if(cellData){
-          td.innerHTML = cellData.text || "";
-          td.style.backgroundColor = cellData.color || "#FFFFFF";
-          td.rowSpan = cellData.rowspan || 1;
-          td.colSpan = cellData.colspan || 1;
-        } else {
-          td.innerHTML = "";
-          td.style.backgroundColor = "#FFFFFF";
-          td.rowSpan = 1;
-          td.colSpan = 1;
-        }
-
-        // marcar todas las posiciones ocupadas por esta celda (rowspan x colspan)
-        const rs = td.rowSpan || 1;
-        const cs = td.colSpan || 1;
-        for(let rr = 0; rr < rs; rr++){
-          for(let cc = 0; cc < cs; cc++){
-            occupied.add(`${r+rr},${c+cc}`);
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const snap = await getDoc(doc(db, "planner", "background"));
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.image) {
+            document.body.style.backgroundImage = `url(${data.image})`;
+            document.body.style.backgroundSize = "cover";
+            document.body.style.backgroundPosition = "center";
           }
         }
+      } catch (e) {
+        console.error("Error cargando fondo:", e);
+      }
+    });
 
+    const table = document.getElementById('planner');
+    const rows_select = document.getElementById('rows_selected');
+    const columns_select = document.getElementById('columns_selected');
+    const cellColors = ["#ADD8E6","#B0C4DE","#FFB6C1","#FFA500","#90EE90","#FFFFFF"];
+    let activeCell = null;
+    let colorClickActive = false;
+
+  // UTILS
+    function attachCellListeners(td){
+      td.addEventListener('focus',()=>activeCell=td);
+      td.addEventListener('mouseup',()=>activeCell=td);
+      td.addEventListener('keyup',()=>activeCell=td);
+      td.addEventListener('pointerdown',()=>activeCell=td);
+      if(!td.dataset.colorIndex) td.dataset.colorIndex=0;
+    }
+
+    function isNodeInside(node, container){
+      if(!node||!container) return false;
+      let cur=node.nodeType===3?node.parentNode:node;
+      while(cur){if(cur===container) return true; cur=cur.parentNode;}
+      return false;
+    }
+
+    function wrapRangeWithSpan(range, styles){
+      const span=document.createElement('span');
+      for(const k in styles) span.style[k]=styles[k];
+        span.appendChild(range.extractContents());
+      range.insertNode(span);
+      return span;
+    }
+
+    function applyStyleToSelectionOrCell(styles){
+      if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
+      const sel=window.getSelection();
+      if(sel&&sel.rangeCount>0){
+        const range=sel.getRangeAt(0);
+        if(isNodeInside(range.commonAncestorContainer,activeCell)){
+          if(sel.isCollapsed){
+            const span=document.createElement('span');
+            for(const k in styles) span.style[k]=styles[k];
+              span.innerHTML='\u200B';
+            range.insertNode(span);
+            sel.removeAllRanges();
+            const newRange=document.createRange();
+            newRange.setStart(span,1); newRange.collapse(true);
+            sel.addRange(newRange);
+            return;
+          } else {
+            wrapRangeWithSpan(range,styles);
+            sel.removeAllRanges();
+            return;
+          }
+        }
+      }
+      for(const k in styles) activeCell.style[k]=styles[k];
+    }
+
+  function ensureListenersOnAllCells(){
+    for(let r=0;r<table.rows.length;r++){
+      for(let c=0;c<table.rows[r].cells.length;c++){
+        const td=table.rows[r].cells[c];
+        if(!td._listenersAttached){attachCellListeners(td); td._listenersAttached=true;}
+      }
+    }
+  }
+
+  // TABLE
+  function createTable(){
+
+  const rows = 10;
+  const columns = 6;
+  const oldData = [];
+
+  for(let r=0;r<table.rows.length;r++){
+    oldData[r] = [];
+    for(let c=0;c<table.rows[r].cells.length;c++){
+      oldData[r][c] = {
+        text: table.rows[r].cells[c].innerHTML,
+        color: table.rows[r].cells[c].style.backgroundColor || "#FFFFFF",
+        rowspan: table.rows[r].cells[c].rowSpan || 1
+      };
+    }
+  }
+
+  table.innerHTML='';
+
+  const topRow = table.insertRow();
+  const topCell1 = topRow.insertCell();
+  topCell1.colSpan = 2;
+  topCell1.textContent = "",
+  topCell1.contentEditable = "true";         
+  attachCellListeners(topCell1);              
+
+  const topCell2 = topRow.insertCell();
+  topCell2.colSpan = 4;
+  topCell2.textContent = "Aule",
+  topCell2.contentEditable = "true";          
+  attachCellListeners(topCell2);              
+
+  for(let r=0;r<rows;r++){
+    const tr=table.insertRow();
+    for(let c=0;c<columns;c++){
+      if(r>0 && c==0 && table.rows[r]?.cells[0]?.rowSpan==2) continue;
+      const td=tr.insertCell();
+      td.contentEditable="true";
+      attachCellListeners(td);
+
+      if(c==0 && r%2==0 && r+1<rows) td.rowSpan=2;
+
+      const defaultCellText = {
+        "0,0": "Lunedì",
+        "0,1": "Mattina",
+        "1,1": "Pomeriggio",
+        "2,0": "Martedì",
+        "2,1": "Mattina",
+        "3,1": "Pomeriggio",
+        "4,0": "Mercoledì",
+        "4,1": "Mattina",
+        "5,1": "Pomeriggio",
+        "6,0": "Giovedì",
+        "6,1": "Mattina",
+        "7,1": "Pomeriggio",
+        "8,0": "Venerdì",
+        "8,1": "Mattina",
+        "9,1": "Pomeriggio",
+        "10,0": "Venerdì",
+        "10,1": "Mattina",
+        "11,1": "Pomeriggio",
+      };
+
+      const key = `${r},${c}`;
+      if(oldData[r] && oldData[r][c] !== undefined){
+        td.innerHTML = oldData[r][c].text;
+        td.style.backgroundColor = oldData[r][c].color;
+      } else if(defaultCellText[key]) {
+        td.innerHTML = defaultCellText[key];
+      } else {
+            td.innerHTML = ""; 
+          }
+
+      const fontSizes = {
+        "0,0": "24px",
+        "0,1": "16px",
+        "1,1": "16px",
+        "2,0": "24px",
+        "4,0": "24px",
+        "6,0": "24px",
+        "8,0": "24px"
+      };
+
+if(fontSizes[key]) {
+    td.style.fontSize = fontSizes[key];
+}
+
+
+          td.dataset.colorIndex = 0;
+          td.addEventListener('click',()=>{
+            if(!colorClickActive) return;
+            let i = parseInt(td.dataset.colorIndex);
+            i = (i+1)%cellColors.length;
+            td.style.backgroundColor = cellColors[i];
+            td.dataset.colorIndex = i;
+          });
+        }
+      }
+
+      const textos = ["GIORNO", "ORA", "GUGLIERMO MARCONI", "ENRICO FERMI", "RITA LEVI MONTALCINI", "MARGHERITA HACK"];
+      const headerRow2 = table.insertRow(1);
+      for (let c = 0; c < 6; c++) {
+        const td = headerRow2.insertCell();
+        td.textContent = textos[c];
+        td.contentEditable = "true";
+        attachCellListeners(td);
         td.dataset.colorIndex = 0;
-        td.addEventListener('click',()=>{ if(!colorClickActive) return; let i=parseInt(td.dataset.colorIndex||"0"); i=(i+1)%cellColors.length; td.style.backgroundColor=cellColors[i]; td.dataset.colorIndex=i; });
       }
-    }
-
-    // si tienes selects de rows/columns actualiza (si existen)
-    if(rows_select) rows_select.value = rows;
-    if(columns_select) columns_select.value = columns;
 
     ensureListenersOnAllCells();
-    alert("✅ Tabella caricata correttamente.");
-  }catch(e){console.error(e); alert("❌ Errore durante il caricamento.");}
-}
+  }
 
-/*
-This was for loading locally
+  createTable();
 
-window.loadTableFromCode=function(){
-  const code=document.getElementById('loadCode').value.trim();
-  if(!code) return alert("⚠️ Nessun codice incollato!");
-  try{
-    const data=JSON.parse(code);
-    const {rows,columns,cells}=data;
-    table.innerHTML=''; const occupied=Array.from({length:rows},()=>Array(columns).fill(false));
+  // BUTTON FUNCTIONS
+  window.tableToImage = async function(){
+    if(!table) return alert("⚠️ No tabella per salvare. ⚠️");
+    const rows = table.rows.length;
+    const cellList = [];
+    const occupied = new Set(); 
+    let maxColIndex = -1;
+
     for(let r=0;r<rows;r++){
-      const tr=table.insertRow();
-      for(let c=0;c<columns;c++){
-        if(occupied[r][c]) continue;
-        const cellData=cells.find(cell=>cell.row===r && cell.col===c);
-        const td=tr.insertCell(); td.contentEditable="true"; attachCellListeners(td);
-        if(cellData){
-          td.innerHTML=cellData.text||"";
-          td.style.backgroundColor=cellData.color||"#FFFFFF";
-          if(cellData.fontFamily) td.style.fontFamily=cellData.fontFamily;
-          if(cellData.fontSize) td.style.fontSize=cellData.fontSize;
-          if(cellData.textColor) td.style.color=cellData.textColor;
-          if(cellData.rowspan>1) td.rowSpan=cellData.rowspan;
-        } else { td.innerHTML=""; td.style.backgroundColor="#FFFFFF"; }
-        for(let i=0;i<td.rowSpan;i++) if(r+i<rows) occupied[r+i][c]=true;
+      let colIndex = 0;
+      const tr = table.rows[r];
+      for(let ci=0; ci<tr.cells.length; ci++){
+        while(occupied.has(`${r},${colIndex}`)) colIndex++;
+        const td = tr.cells[ci];
+        const rowspan = td.rowSpan || 1;
+        const colspan = td.colSpan || 1;
+        cellList.push({
+          row: r,
+          col: colIndex,
+          text: td.innerHTML,
+          color: td.style.backgroundColor || "#FFFFFF",
+          rowspan: rowspan,
+          colspan: colspan
+        });
+        for(let rr = 0; rr < rowspan; rr++){
+          for(let cc = 0; cc < colspan; cc++){
+            occupied.add(`${r+rr},${colIndex+cc}`);
+          }
+        }
+        maxColIndex = Math.max(maxColIndex, colIndex + colspan - 1);
+        colIndex += colspan;
       }
     }
-    rows_select.value=rows; columns_select.value=columns;
-    ensureListenersOnAllCells();
-    alert("✅ Tabella caricata dal codice!");
-  }catch(e){console.error(e); alert("❌ Codice non valido!");}
-}
 
-window.copyTableCode=function(){
-  const textarea=document.getElementById('tableCode');
-  textarea.select();
-  document.execCommand('copy');
-  alert("📋 Copiado negli appunti!");
-}*/
+    const columns = Math.max(0, maxColIndex + 1);
 
-window.execCmd=function(command){
-  if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
-  activeCell.focus();
-  document.execCommand(command,false,null);
-}
+    try{
+      await setDoc(doc(db,"planner","latestTable"),{
+        rows,
+        columns,
+        cells: cellList,
+        updated: new Date().toISOString()
+      });
 
-window.applyFont=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value}); }
-window.applyFontSize=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); const size=document.getElementById('fontSizeInput').value; if(!size||isNaN(size)) return alert("⚠️ Inserisci un numero valido per la dimensione! ⚠️"); applyStyleToSelectionOrCell({fontSize:size+'px'});}
-window.applyColor=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); applyStyleToSelectionOrCell({color:document.getElementById('fontColor').value}); }
-window.applyCellStyle=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value,fontSize:document.getElementById('fontSizeInput').value+'px',color:document.getElementById('fontColor').value}); }
+      const clone = table.cloneNode(true);
+      clone.style.margin="0"; clone.style.padding="0"; clone.style.borderCollapse="collapse"; clone.style.backgroundColor="#FFFFFF";
+      document.body.appendChild(clone);
+      const canvas = await html2canvas(clone,{scale:3,backgroundColor:"#FFFFFF",useCORS:true,removeContainer:true});
+      document.body.removeChild(clone);
+      const imgData = canvas.toDataURL("image/png");
+      await setDoc(doc(db,"planner","latestImage"),{image:imgData,updated:new Date().toISOString()});
+      alert("✅ Tabella e immagine salvate correttamente.");
+    }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
+  }
 
-</script>
 
-</body>
-</html>
+
+    window.toggleColorMode = function () {
+      colorClickActive = !colorClickActive;
+      const btn = document.getElementById('toggleColorModeBtn');
+      btn.textContent = colorClickActive ? "Disabilitare colore" : "Attivare colore";
+    };
+
+    table.addEventListener('click', (e) => {
+    if (!colorClickActive) return; 
+      const td = e.target.closest('td');
+      if (!td) return;
+      const color = document.getElementById('bgColorPicker').value;
+      td.style.backgroundColor = color;
+  });
+
+  window.loadFromFirestore = async function(){
+    try{
+      const snapshot = await getDoc(doc(db,"planner","latestTable"));
+      if(!snapshot.exists()) return alert("⚠️ Nessun dato salvato. ⚠️");
+      const data = snapshot.data();
+      const {rows, columns, cells} = data;
+      table.innerHTML = '';
+      const occupied = new Set();
+
+      for(let r = 0; r < rows; r++){
+        const tr = table.insertRow();
+        for(let c = 0; c < columns; c++){
+          if(occupied.has(`${r},${c}`)) continue; 
+          const cellData = cells.find(cell => cell.row === r && cell.col === c);
+          const td = tr.insertCell();
+          td.contentEditable = "true";
+          attachCellListeners(td);
+
+          if(cellData){
+            td.innerHTML = cellData.text || "";
+            td.style.backgroundColor = cellData.color || "#FFFFFF";
+            td.rowSpan = cellData.rowspan || 1;
+            td.colSpan = cellData.colspan || 1;
+          } else {
+            td.innerHTML = "";
+            td.style.backgroundColor = "#FFFFFF";
+            td.rowSpan = 1;
+            td.colSpan = 1;
+          }
+
+          const rs = td.rowSpan || 1;
+          const cs = td.colSpan || 1;
+          for(let rr = 0; rr < rs; rr++){
+            for(let cc = 0; cc < cs; cc++){
+              occupied.add(`${r+rr},${c+cc}`);
+            }
+          }
+
+          td.dataset.colorIndex = 0;
+          td.addEventListener('click',()=>{ if(!colorClickActive) return; let i=parseInt(td.dataset.colorIndex||"0"); i=(i+1)%cellColors.length; td.style.backgroundColor=cellColors[i]; td.dataset.colorIndex=i; });
+        }
+      }
+
+      if(rows_select) rows_select.value = rows;
+      if(columns_select) columns_select.value = columns;
+
+      ensureListenersOnAllCells();
+      alert("✅ Tabella caricata correttamente.");
+    }catch(e){console.error(e); alert("❌ Errore durante il caricamento.");}
+  }
+
+  window.execCmd=function(command){
+    if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
+    activeCell.focus();
+    document.execCommand(command,false,null);
+  }
+
+  window.applyFont=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value}); }
+  window.applyFontSize=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); const size=document.getElementById('fontSizeInput').value; if(!size||isNaN(size)) return alert("⚠️ Inserisci un numero valido per la dimensione! ⚠️"); applyStyleToSelectionOrCell({fontSize:size+'px'});}
+  window.applyColor=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); applyStyleToSelectionOrCell({color:document.getElementById('fontColor').value}); }
+  window.applyCellStyle=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value,fontSize:document.getElementById('fontSizeInput').value+'px',color:document.getElementById('fontColor').value}); }
+
+  </script>
+
+  </body>
+  </html>
