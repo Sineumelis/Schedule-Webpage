@@ -266,8 +266,8 @@ function createTable(/*rows,columns*/){
     }
   }*/
 
-    const rows = 10;
-  const columns = 8;
+  const rows = 10;
+  const columns = 6;
   const oldData = [];
 
   for(let r=0;r<table.rows.length;r++){
@@ -282,18 +282,76 @@ function createTable(/*rows,columns*/){
   }
 
   table.innerHTML='';
+
+    const topRow = table.insertRow();
+    const topCell1 = topRow.insertCell();
+    topCell1.colSpan = 2;
+    topCell1.contentEditable = "true";         
+    attachCellListeners(topCell1);              
+
+    const topCell2 = topRow.insertCell();
+    topCell2.colSpan = 4;
+    topCell2.contentEditable = "true";          
+    attachCellListeners(topCell2);              
+
   for(let r=0;r<rows;r++){
     const tr=table.insertRow();
     for(let c=0;c<columns;c++){
-      if(r>0 && c==0 && table.rows[r-1]?.cells[0]?.rowSpan==2) continue;
+      if(r>0 && c==0 && table.rows[r]?.cells[0]?.rowSpan==2) continue;
       const td=tr.insertCell();
       td.contentEditable="true";
       attachCellListeners(td);
+
       if(c==0 && r%2==0 && r+1<rows) td.rowSpan=2;
-      if(oldData[r] && oldData[r][c]!==undefined){
+
+      /*if(oldData[r] && oldData[r][c]!==undefined){
         td.innerHTML = oldData[r][c].text;
         td.style.backgroundColor = oldData[r][c].color;
+      }*/
+
+      const defaultCellText = {
+
+        "top,0": "Titolo sinistra",
+        "top,1": "Titolo destra",
+
+        "head2,0": "Colonna 1",
+        "head2,1": "Colonna 2",
+        "head2,2": "Colonna 3",
+        "head2,3": "Colonna 4",
+        "head2,4": "Colonna 5",
+        "head2,5": "Colonna 6",
+
+        "0,0": "Lunedì",
+        "0,1": "Mattina",
+        "1,1": "Pomeriggio",
+        "2,0": "Martedì",
+        "2,1": "Mattina",
+        "3,1": "Pomeriggio",
+        "4,0": "Mercoledì",
+        "4,1": "Mattina",
+        "5,1": "Pomeriggio",
+        "6,0": "Giovedì",
+        "6,1": "Mattina",
+        "7,1": "Pomeriggio",
+        "8,0": "Venerdì",
+        "8,1": "Mattina",
+        "9,1": "Pomeriggio",
+        "10,0": "Venerdì",
+        "10,1": "Mattina",
+        "11,1": "Pomeriggio",
+      };
+
+      const key = `${r},${c}`;
+        if(oldData[r] && oldData[r][c] !== undefined){
+          td.innerHTML = oldData[r][c].text;
+          td.style.backgroundColor = oldData[r][c].color;
+        } else if(defaultCellText[key]) {
+          td.innerHTML = defaultCellText[key];
+        } else {
+          td.innerHTML = ""; // vacío si no está en el mapa
       }
+
+
       td.dataset.colorIndex = 0;
       td.addEventListener('click',()=>{
         if(!colorClickActive) return;
@@ -304,40 +362,79 @@ function createTable(/*rows,columns*/){
       });
     }
   }
+const headerRow2 = table.insertRow(1); // Insertar como segunda fila REAL
+for (let c = 0; c < 6; c++) {
+    const td = headerRow2.insertCell();
+    td.contentEditable = "true";
+    attachCellListeners(td);
+    td.dataset.colorIndex = 0;
+}
   ensureListenersOnAllCells();
 }
+
 
 createTable();
 
 // BUTTON FUNCTIONS
-window.tableToImage=async function(){
+window.tableToImage = async function(){
   if(!table) return alert("⚠️ No tabella per salvare. ⚠️");
-  const rows=table.rows.length;
-  const columns=table.rows[0]?.cells.length||0;
-  const cellList=[]; const occupied=Array.from({length:rows},()=>Array(columns).fill(false));
+  const rows = table.rows.length;
+  const cellList = [];
+  const occupied = new Set(); // marca posiciones "r,c" ocupadas
+  let maxColIndex = -1;
+
   for(let r=0;r<rows;r++){
-    let colIndex=0;
-    const tr=table.rows[r];
-    for(let ci=0;ci<tr.cells.length;ci++){
-      while(occupied[r][colIndex]) colIndex++;
-      const td=tr.cells[ci];
-      cellList.push({row:r,col:colIndex,text:td.innerHTML,color:td.style.backgroundColor||"#FFFFFF",rowspan:td.rowSpan||1});
-      for(let i=0;i<td.rowSpan;i++) if(r+i<rows) occupied[r+i][colIndex]=true;
-      colIndex++;
+    let colIndex = 0;
+    const tr = table.rows[r];
+    for(let ci=0; ci<tr.cells.length; ci++){
+      // avanzar hasta la primera columna libre
+      while(occupied.has(`${r},${colIndex}`)) colIndex++;
+      const td = tr.cells[ci];
+      const rowspan = td.rowSpan || 1;
+      const colspan = td.colSpan || 1;
+      // guardar celda
+      cellList.push({
+        row: r,
+        col: colIndex,
+        text: td.innerHTML,
+        color: td.style.backgroundColor || "#FFFFFF",
+        rowspan: rowspan,
+        colspan: colspan
+      });
+      // marcar ocupadas (rowspan x colspan)
+      for(let rr = 0; rr < rowspan; rr++){
+        for(let cc = 0; cc < colspan; cc++){
+          occupied.add(`${r+rr},${colIndex+cc}`);
+        }
+      }
+      // actualizar maxColIndex
+      maxColIndex = Math.max(maxColIndex, colIndex + colspan - 1);
+      colIndex += colspan;
     }
   }
+
+  const columns = Math.max(0, maxColIndex + 1);
+
   try{
-    await setDoc(doc(db,"planner","latestTable"),{rows,columns,cells:cellList,updated:new Date().toISOString()});
-    const clone=table.cloneNode(true);
+    await setDoc(doc(db,"planner","latestTable"),{
+      rows,
+      columns,
+      cells: cellList,
+      updated: new Date().toISOString()
+    });
+
+    // igual que antes: generar imagen y guardar
+    const clone = table.cloneNode(true);
     clone.style.margin="0"; clone.style.padding="0"; clone.style.borderCollapse="collapse"; clone.style.backgroundColor="#FFFFFF";
     document.body.appendChild(clone);
-    const canvas=await html2canvas(clone,{scale:3,backgroundColor:"#FFFFFF",useCORS:true,removeContainer:true});
+    const canvas = await html2canvas(clone,{scale:3,backgroundColor:"#FFFFFF",useCORS:true,removeContainer:true});
     document.body.removeChild(clone);
-    const imgData=canvas.toDataURL("image/png");
+    const imgData = canvas.toDataURL("image/png");
     await setDoc(doc(db,"planner","latestImage"),{image:imgData,updated:new Date().toISOString()});
     alert("✅ Tabella e immagine salvate correttamente.");
   }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
 }
+
 
 
   window.toggleColorMode = function () {
@@ -359,30 +456,58 @@ window.tableToImage=async function(){
 
 
 
-window.loadFromFirestore=async function(){
+window.loadFromFirestore = async function(){
   try{
-    const snapshot=await getDoc(doc(db,"planner","latestTable"));
+    const snapshot = await getDoc(doc(db,"planner","latestTable"));
     if(!snapshot.exists()) return alert("⚠️ Nessun dato salvato. ⚠️");
-    const data=snapshot.data();
-    const {rows,columns,cells}=data;
-    table.innerHTML=''; const occupied=Array.from({length:rows},()=>Array(columns).fill(false));
-    for(let r=0;r<rows;r++){
-      const tr=table.insertRow();
-      for(let c=0;c<columns;c++){
-        if(occupied[r][c]) continue;
-        const cellData=cells.find(cell=>cell.row===r && cell.col===c);
-        const td=tr.insertCell(); td.contentEditable="true"; attachCellListeners(td);
-        if(cellData){ td.innerHTML=cellData.text; td.style.backgroundColor=cellData.color; if(cellData.rowspan>1) td.rowSpan=cellData.rowspan;}
-        else {td.innerHTML=""; td.style.backgroundColor="#FFFFFF";}
-        for(let i=0;i<td.rowSpan;i++) if(r+i<rows) occupied[r+i][c]=true;
-        td.dataset.colorIndex=0;
-        td.addEventListener('click',()=>{if(!colorClickActive) return; let i=parseInt(td.dataset.colorIndex); i=(i+1)%cellColors.length; td.style.backgroundColor=cellColors[i]; td.dataset.colorIndex=i;});
+    const data = snapshot.data();
+    const {rows, columns, cells} = data;
+    table.innerHTML = '';
+    const occupied = new Set(); // marcará "r,c" ocupadas
+
+    for(let r = 0; r < rows; r++){
+      const tr = table.insertRow();
+      for(let c = 0; c < columns; c++){
+        if(occupied.has(`${r},${c}`)) continue; // ya ocupada por rowspan/colspan previa
+        // buscar la celda que comienza en r,c
+        const cellData = cells.find(cell => cell.row === r && cell.col === c);
+        const td = tr.insertCell();
+        td.contentEditable = "true";
+        attachCellListeners(td);
+
+        if(cellData){
+          td.innerHTML = cellData.text || "";
+          td.style.backgroundColor = cellData.color || "#FFFFFF";
+          td.rowSpan = cellData.rowspan || 1;
+          td.colSpan = cellData.colspan || 1;
+        } else {
+          td.innerHTML = "";
+          td.style.backgroundColor = "#FFFFFF";
+          td.rowSpan = 1;
+          td.colSpan = 1;
+        }
+
+        // marcar todas las posiciones ocupadas por esta celda (rowspan x colspan)
+        const rs = td.rowSpan || 1;
+        const cs = td.colSpan || 1;
+        for(let rr = 0; rr < rs; rr++){
+          for(let cc = 0; cc < cs; cc++){
+            occupied.add(`${r+rr},${c+cc}`);
+          }
+        }
+
+        td.dataset.colorIndex = 0;
+        td.addEventListener('click',()=>{ if(!colorClickActive) return; let i=parseInt(td.dataset.colorIndex||"0"); i=(i+1)%cellColors.length; td.style.backgroundColor=cellColors[i]; td.dataset.colorIndex=i; });
       }
     }
-    rows_select.value=rows; columns_select.value=columns;
+
+    // si tienes selects de rows/columns actualiza (si existen)
+    if(rows_select) rows_select.value = rows;
+    if(columns_select) columns_select.value = columns;
+
     ensureListenersOnAllCells();
-    alert("✅ Tabella e immagine salvate correttamente.");
-  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
+    alert("✅ Tabella caricata correttamente.");
+  }catch(e){console.error(e); alert("❌ Errore durante il caricamento.");}
 }
 
 /*
