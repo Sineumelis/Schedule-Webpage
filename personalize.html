@@ -11,7 +11,7 @@
 
   <!-- TABLE LAYOUT -->
 
-  <h1>Ciao</h1>
+  <h1>Ciao :)</h1>
 
   <br>
 
@@ -234,23 +234,23 @@
 
       const defaultCellText = {
         "0,0": "Lunedì",
-        "0,1": "Mattina",
-        "1,1": "Pomeriggio",
+        "0,1": "☀️ Mattina",
+        "1,1": "🌙 Pomeriggio",
         "2,0": "Martedì",
-        "2,1": "Mattina",
-        "3,1": "Pomeriggio",
+        "2,1": "☀️ Mattina",
+        "3,1": "🌙 Pomeriggio",
         "4,0": "Mercoledì",
-        "4,1": "Mattina",
-        "5,1": "Pomeriggio",
+        "4,1": "☀️ Mattina",
+        "5,1": "🌙 Pomeriggio",
         "6,0": "Giovedì",
-        "6,1": "Mattina",
-        "7,1": "Pomeriggio",
+        "6,1": "☀️ Mattina",
+        "7,1": "🌙 Pomeriggio",
         "8,0": "Venerdì",
-        "8,1": "Mattina",
-        "9,1": "Pomeriggio",
+        "8,1": "☀️ Mattina",
+        "9,1": "🌙 Pomeriggio",
         "10,0": "Venerdì",
-        "10,1": "Mattina",
-        "11,1": "Pomeriggio",
+        "10,1": "☀️ Mattina",
+        "11,1": "🌙 Pomeriggio",
       };
 
       const key = `${r},${c}`;
@@ -260,8 +260,12 @@
       } else if(defaultCellText[key]) {
         td.innerHTML = defaultCellText[key];
       } else {
-            td.innerHTML = ""; 
-          }
+        td.innerHTML = ""; 
+      }
+
+      if(td.innerHTML.includes("Pomeriggio")){
+        td.style.backgroundColor = "#92c3e4";
+      }
 
       const fontSizes = {
         "0,0": "24px",
@@ -273,9 +277,9 @@
         "8,0": "24px"
       };
 
-if(fontSizes[key]) {
-    td.style.fontSize = fontSizes[key];
-}
+    if(fontSizes[key]) {
+      td.style.fontSize = fontSizes[key];
+    }
 
 
           td.dataset.colorIndex = 0;
@@ -297,6 +301,13 @@ if(fontSizes[key]) {
         td.contentEditable = "true";
         attachCellListeners(td);
         td.dataset.colorIndex = 0;
+      }
+
+      for (let cell of topRow.cells) {
+        cell.style.height = "30px";
+      }
+      for (let cell of headerRow2.cells) {
+        cell.style.height = "30px";
       }
 
     ensureListenersOnAllCells();
