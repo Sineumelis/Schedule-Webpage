@@ -53,11 +53,11 @@
   </div>
 
   <br>
-  <button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
-
-  <label>Background:
+  <label>Cell Background Color: 
     <input type="color" id="bgColorPicker" value="#ffffff">
   </label>
+
+  <button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
 
   <br><br>
 
@@ -405,6 +405,7 @@
           if(occupied.has(`${r},${c}`)) continue; 
           const cellData = cells.find(cell => cell.row === r && cell.col === c);
           const td = tr.insertCell();
+          if(r < 2) td.style.height = "30px"; //Force the size of the 2 first rows
           td.contentEditable = "true";
           attachCellListeners(td);
 
