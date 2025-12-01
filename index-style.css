@@ -52,8 +52,10 @@ body {
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      display: flex;
       z-index: 9999;
       cursor: pointer;
       background-color: white;
+      justify-content: center;
+      align-items: center; 
     }
