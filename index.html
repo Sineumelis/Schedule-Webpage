@@ -66,35 +66,60 @@
 
     const image = document.getElementById('toggle_image');
     let isExpanded = false;
+    var foregroundImage = ""; // ← IMPORTANTE: var para que el módulo pueda actualizarla globalmente
 
-      image.addEventListener('click', () => {
-    if (!isExpanded) {
-      const overlay = document.createElement('div');
-      overlay.className = 'full_screen';
-      overlay.style.backgroundImage = document.body.style.backgroundImage;
-      overlay.style.backgroundSize = "cover";
-      overlay.style.backgroundPosition = "center";
-      overlay.style.cursor = 'pointer';
+    image.addEventListener('click', () => {
+      if (!isExpanded) {
+        const overlay = document.createElement('div');
+        overlay.className = 'full_screen';
+        // Aseguramos que overlay cubra toda la pantalla y esté por encima
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.right = "0";
+        overlay.style.bottom = "0";
+        overlay.style.zIndex = "9999";
 
-      const fullImg = document.createElement('img');
-      fullImg.src = image.src;
+        overlay.style.backgroundImage = document.body.style.backgroundImage;
+        overlay.style.backgroundSize = "cover";
+        overlay.style.backgroundPosition = "center";
+        overlay.style.cursor = 'pointer';
 
-      fullImg.style.width = "1500px";  
-      fullImg.style.height = "600px";  
-      fullImg.style.display = "block";  
-      fullImg.style.marginTop = "100px"; 
+        const fgOverlay = document.createElement('div');
+        fgOverlay.style.position = "absolute";
+        fgOverlay.style.top = "0";
+        fgOverlay.style.left = "0";
+        fgOverlay.style.right = "0";
+        fgOverlay.style.bottom = "0";
+        fgOverlay.style.backgroundImage = foregroundImage ? `url(${foregroundImage})` : "";
+        fgOverlay.style.backgroundSize = "cover";
+        fgOverlay.style.backgroundPosition = "center";
+        fgOverlay.style.pointerEvents = "none";
+        fgOverlay.style.zIndex = "2"; // foreground por delante
 
-      overlay.appendChild(fullImg);
+        const fullImg = document.createElement('img');
+        fullImg.src = image.src;
 
-      overlay.addEventListener('click', () => {
-        overlay.remove();
-        isExpanded = false;
-      });
+        fullImg.style.width = "1500px";
+        fullImg.style.height = "600px";
+        fullImg.style.display = "block";
+        fullImg.style.marginTop = "100px";
+        fullImg.style.position = "relative";
+        fullImg.style.zIndex = "1"; // aseguramos que la imagen quede detrás del fgOverlay
 
-      document.body.appendChild(overlay);
-      isExpanded = true;
-    }
-  });
+        overlay.appendChild(fgOverlay);
+        overlay.appendChild(fullImg);
+
+        overlay.addEventListener('click', () => {
+          overlay.remove();
+          isExpanded = false;
+        });
+
+        document.body.appendChild(overlay);
+        isExpanded = true;
+      }
+    });
+
 
   </script>
 
@@ -118,8 +143,8 @@
     const auth = getAuth(app);
 
     window.login = async function () {
-    const email = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+      const email = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
       try {
         await signInWithEmailAndPassword(auth, email, password);
@@ -169,6 +194,20 @@
         console.log("⚠️ Nessun background salvato ancora.");
       }
     });
+
+    // ← AÑADIDO: cargar foreground exactamente igual que background
+    const fgRef = doc(db, 'planner', 'foreground');
+    onSnapshot(fgRef, (snapshot) => {
+      if (snapshot.exists() && snapshot.data().image) {
+        // Actualiza la variable global foregroundImage (declarada con var arriba)
+        foregroundImage = snapshot.data().image;
+        console.log("🖼️ Foreground cargado correctamente.");
+      } else {
+        foregroundImage = "";
+        console.log("⚠️ Nessun foreground salvato ancora.");
+      }
+    });
+
   </script>
 
 </body>
