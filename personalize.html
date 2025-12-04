@@ -76,11 +76,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script type="module">
+
     //Firebase imports
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
       import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-
-
 
       const firebaseConfig = {
         apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
@@ -113,7 +112,7 @@
             alert("✅ Background salvato.");
           } catch (err) {
             console.error(err);
-            alert("❌ Errore background.");
+            alert("❌ Errore background." + (err && err.message ? err.message : String(err)));
           }
         };
 
@@ -151,7 +150,7 @@
             alert("✅ Foreground salvato.");
           } catch (err) {
             console.error(err);
-            alert("❌ Errore foreground.");
+            alert("❌ Errore foreground: " + (err && err.message ? err.message : String(err)));
           }
         };
 
@@ -168,7 +167,7 @@
     alert("🗑️ Background eliminado.");
   } catch (err) {
     console.error(err);
-    alert("❌ Errore eliminando background.");
+    alert("❌ Errore eliminando background." + (err && err.message ? err.message : String(err)));
   }
 };
 
@@ -182,7 +181,7 @@ window.deleteForeground = async function () {
     alert("🗑️ Foreground eliminado.");
   } catch (err) {
     console.error(err);
-    alert("❌ Errore eliminando foreground.");
+    alert("❌ Errore eliminando foreground." + (err && err.message ? err.message : String(err)));
   }
 };
 
@@ -435,7 +434,10 @@ window.tableToImage = async function(){
     const imgData = canvas.toDataURL("image/png");
     await setDoc(doc(db,"planner","latestImage"),{image:imgData,updated:new Date().toISOString()});
     alert("✅ Tabella e immagine salvate correttamente.");
-  }catch(e){console.error(e); alert("❌ Errore durante il salvataggio.");}
+  }
+   catch(e){console.error(e);
+   alert("❌ Errore durante il salvataggio." + (err && err.message ? err.message : String(err)));
+ }
 }
 
 
@@ -504,7 +506,10 @@ window.loadFromFirestore = async function(){
 
       ensureListenersOnAllCells();
       alert("✅ Tabella caricata correttamente.");
-    }catch(e){console.error(e); alert("❌ Errore durante il caricamento.");}
+    }catch(e){
+      console.error(e);
+      alert("❌ Errore durante il caricamento." + (err && err.message ? err.message : String(err)));
+    }
   }
 
   window.execCmd=function(command){
