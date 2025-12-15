@@ -107,25 +107,34 @@
       const db = getFirestore(app);
       const storage = getStorage(app);
 
-      window.uploadBackground = async function(event) {
+      window.uploadBackground = async function (event) {
         const file = event.target.files[0];
         if (!file) return;
+
         const reader = new FileReader();
 
-        reader.onload = async function(e) {
-          const base64Image = e.target.result;
+        reader.onload = async function (e) {
           try {
+            const base64Image = e.target.result;
+
+            const bgRef = ref(storage, "planner/background/background.png");
+            await uploadString(bgRef, base64Image, "data_url");
+
+            const downloadURL = await getDownloadURL(bgRef);
+
             await setDoc(doc(db, "planner", "background"), {
-              image: base64Image,
+              url: downloadURL,
               updated: new Date().toISOString()
             });
-            document.body.style.backgroundImage = `url(${base64Image})`;
+
+            document.body.style.backgroundImage = `url(${downloadURL})`;
             document.body.style.backgroundSize = "cover";
             document.body.style.backgroundPosition = "center";
-            alert("✅ Background salvato.");
+
+            alert("✅ Background salvato in Storage.");
           } catch (err) {
             console.error(err);
-            alert("❌ Errore background." + (err && err.message ? err.message : String(err)));
+            alert("❌ Errore background.");
           }
         };
 
@@ -138,7 +147,7 @@
           if (snap.exists()) {
             const data = snap.data();
             if (data.image) {
-              document.body.style.backgroundImage = `url(${data.image})`;
+              document.body.style.backgroundImage = `url(${data.url})`;
               document.body.style.backgroundSize = "cover";
               document.body.style.backgroundPosition = "center";
             }
@@ -148,22 +157,30 @@
         }
       });
 
-      window.uploadForeground = async function(event) {
+      window.uploadForeground = async function (event) {
         const file = event.target.files[0];
         if (!file) return;
+
         const reader = new FileReader();
 
-        reader.onload = async function(e) {
-          const base64Image = e.target.result;
+        reader.onload = async function (e) {
           try {
+            const base64Image = e.target.result;
+
+            const fgRef = ref(storage, "planner/foreground/foreground.png");
+            await uploadString(fgRef, base64Image, "data_url");
+
+            const downloadURL = await getDownloadURL(fgRef);
+
             await setDoc(doc(db, "planner", "foreground"), {
-              image: base64Image,
+              url: downloadURL,
               updated: new Date().toISOString()
             });
-            alert("✅ Foreground salvato.");
+
+            alert("✅ Foreground salvato in Storage.");
           } catch (err) {
             console.error(err);
-            alert("❌ Errore foreground: " + (err && err.message ? err.message : String(err)));
+            alert("❌ Errore foreground.");
           }
         };
 
@@ -173,34 +190,29 @@
       window.deleteBackground = async function () {
         try {
           await setDoc(doc(db, "planner", "background"), {
-            image: "",
-            updated: new Date().toISOString()
-          });
-    document.body.style.backgroundImage = ""; // Opcional: quita el fondo en la página
-    alert("🗑️ Background eliminado.");
-  } catch (err) {
-    console.error(err);
-    alert("❌ Errore eliminando background." + (err && err.message ? err.message : String(err)));
-  }
-};
+          url: "",
+          updated: new Date().toISOString()
+        });
+          document.body.style.backgroundImage = "";
+          alert("🗑️ Background eliminado.");
+        } catch (err) {
+          console.error(err);
+          alert("❌ Errore eliminando background." + (err && err.message ? err.message : String(err)));
+        }
+      };
 
-
-window.deleteForeground = async function () {
-  try {
-    await setDoc(doc(db, "planner", "foreground"), {
-      image: "",
-      updated: new Date().toISOString()
-    });
-    alert("🗑️ Foreground eliminado.");
-  } catch (err) {
-    console.error(err);
-    alert("❌ Errore eliminando foreground." + (err && err.message ? err.message : String(err)));
-  }
-};
-
-
-
-
+      window.deleteForeground = async function () {
+        try {
+          await setDoc(doc(db, "planner", "foreground"), {
+          url: "",
+          updated: new Date().toISOString()
+        });
+          alert("🗑️ Foreground eliminado.");
+        } catch (err) {
+          console.error(err);
+          alert("❌ Errore eliminando foreground." + (err && err.message ? err.message : String(err)));
+        }
+      };
 
 const table = document.getElementById('planner');
 const rows_select = document.getElementById('rows_selected');

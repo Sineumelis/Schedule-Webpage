@@ -214,7 +214,8 @@
 
     const bgRef = doc(db, 'planner', 'background');
 
-    onSnapshot(bgRef, (snapshot) => {
+    //Old one
+    /*onSnapshot(bgRef, (snapshot) => {
       if (snapshot.exists() && snapshot.data().image) {
         const bg = snapshot.data().image;
         document.body.style.backgroundImage = `url(${bg})`;
@@ -226,11 +227,27 @@
       } else {
         console.log("⚠️ Nessun background salvato ancora.");
       }
+    });*/
+
+    onSnapshot(bgRef, (snapshot) => {
+      if (snapshot.exists() && snapshot.data().url) {
+        const bg = snapshot.data().url;
+        document.body.style.backgroundImage = `url(${bg})`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+        document.body.style.backgroundRepeat = "no-repeat";
+
+        console.log("🎨 Background caricato da Storage");
+      } else {
+        console.log("⚠️ Nessun background salvato ancora.");
+      }
     });
+
 
     // ← AÑADIDO: cargar foreground exactamente igual que background
     const fgRef = doc(db, 'planner', 'foreground');
-    onSnapshot(fgRef, (snapshot) => {
+    //Old one
+    /*onSnapshot(fgRef, (snapshot) => {
       if (snapshot.exists() && snapshot.data().image) {
         // Actualiza la variable global foregroundImage (declarada con var arriba)
         foregroundImage = snapshot.data().image;
@@ -239,7 +256,17 @@
         foregroundImage = "";
         console.log("⚠️ Nessun foreground salvato ancora.");
       }
+    });*/
+    onSnapshot(fgRef, (snapshot) => {
+      if (snapshot.exists() && snapshot.data().url) {
+        foregroundImage = snapshot.data().url;
+        console.log("🖼️ Foreground caricato da Storage");
+      } else {
+        foregroundImage = "";
+        console.log("⚠️ Nessun foreground salvato ancora.");
+      }
     });
+
 
   </script>
 </body>
