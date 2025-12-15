@@ -128,7 +128,8 @@
     import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
-    const firebaseConfig = {
+    //Old one
+    /*const firebaseConfig = {
       apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
       authDomain: "schedule-it-69420.firebaseapp.com",
       projectId: "schedule-it-69420",
@@ -136,7 +137,18 @@
       messagingSenderId: "541795813911",
       appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
       measurementId: "G-K5BR2NTY3C"
+    };*/
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyATbtAuHoMBpcKPFk8jAc2OOFwZ0wUPu6c",
+      authDomain: "tabella-it.firebaseapp.com",
+      projectId: "tabella-it",
+      storageBucket: "tabella-it.firebasestorage.app",
+      messagingSenderId: "239135297594",
+      appId: "1:239135297594:web:0749c9fa69e0ba8613e503",
+      measurementId: "G-Z05YJV52Q3"
     };
+
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -159,7 +171,8 @@
     const msg = document.getElementById('no_image_msg');
 
     const docRef = doc(db, 'planner', 'latestImage');
-    onSnapshot(docRef, (snapshot) => {
+    //Old one with base64 in database
+    /*onSnapshot(docRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         if (data.image) {
@@ -171,6 +184,26 @@
           image.style.display = 'none';
           msg.style.display = 'block';
           msg.textContent = "⚠️ Documento esiste ma non contiene 'image'";
+        }
+      } else {
+        image.style.display = 'none';
+        msg.style.display = 'block';
+        msg.textContent = "⚠️ Nessuna immagine salvata ancora";
+      }
+    });*/
+    onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+
+        if (data.url) { 
+          image.src = data.url;
+          image.style.display = 'block';
+          msg.style.display = 'none';
+          console.log("✅ Immagine caricata da Firebase Storage");
+        } else {
+          image.style.display = 'none';
+          msg.style.display = 'block';
+          msg.textContent = "⚠️ Documento senza URL immagine";
         }
       } else {
         image.style.display = 'none';
@@ -209,6 +242,5 @@
     });
 
   </script>
-
 </body>
 </html>
