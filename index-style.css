@@ -38,9 +38,9 @@ body {
     }
 
     #toggle_image {
-      margin-top: 20px;
+      margin-top: 30px;
       cursor: pointer;
-      max-width: 100%;
+      max-width: 90%;
       height: auto;
       border-radius: 12px;
       transition: transform 0.3s ease;
