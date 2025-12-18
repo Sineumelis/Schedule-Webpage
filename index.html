@@ -29,21 +29,22 @@
     crossorigin="anonymous"
   >
 
-  <!-- FOREGROUND -->
-  <div id="foreground_layer"></div>
+  <!-- FOREGROUND (AHORA ES IMG, COMO LA TABLA) -->
+  <img
+    id="foreground_layer"
+    src="https://firebasestorage.googleapis.com/v0/b/tabella-it.firebasestorage.app/o/planner%2Fforeground%2Fforeground.png?alt=media"
+    crossorigin="anonymous"
+  >
 
   <!-- SCRIPTS -->
   <script>
     /*
-      URLs DIRETTAS
+      URLs DIRECTAS
       (igual que la imagen <img>)
     */
 
     const BACKGROUND_URL =
       "https://firebasestorage.googleapis.com/v0/b/tabella-it.firebasestorage.app/o/planner%2Fbackground%2Fbackground.png?alt=media";
-
-    const FOREGROUND_URL =
-      "https://firebasestorage.googleapis.com/v0/b/tabella-it.firebasestorage.app/o/planner%2Fforeground%2Fforeground.png?alt=media";
 
     /*
       BACKGROUND
@@ -53,22 +54,6 @@
     document.body.style.backgroundSize = "cover";
     document.body.style.backgroundPosition = "center";
     document.body.style.backgroundRepeat = "no-repeat";
-
-    /*
-      FOREGROUND
-      Capa fija por delante, cargada al iniciar
-    */
-    const fg = document.getElementById("foreground_layer");
-    fg.style.position = "fixed";
-    fg.style.top = "0";
-    fg.style.left = "0";
-    fg.style.right = "0";
-    fg.style.bottom = "0";
-    fg.style.pointerEvents = "none";
-    fg.style.zIndex = "10";
-    fg.style.backgroundImage = `url(${FOREGROUND_URL})`;
-    fg.style.backgroundSize = "cover";
-    fg.style.backgroundPosition = "center";
   </script>
 
 </body>
