@@ -14,13 +14,20 @@
     <input type="text" id="username" placeholder="Username"><br>
     <input type="password" id="password" placeholder="Password"><br>
     <button onclick="login()">Accedi Ora</button>
+
+    <img src="https://placehold.co/600x400">
+
+    <img id="toggle_image" alt="Immagine" style="display:none; max-width:100%; height:auto; border-radius:12px;">
+    <p id="no_image_msg" style="margin-top:20px; color:#777;">Nessuna immagine disponibile</p>
   </div>
   -->
 
-  <img src="https://placehold.co/600x400">
-
-  <img id="toggle_image" alt="Immagine" style="display:none; max-width:100%; height:auto; border-radius:12px;">
-  <p id="no_image_msg" style="margin-top:20px; color:#777;">Nessuna immagine disponibile</p>
+  <img
+  id="toggle_image"
+  src="https://firebasestorage.googleapis.com/v0/b/tabella-it.firebasestorage.app/o/planner%2Fimages%2Flatest.png?alt=media"
+  style="max-width:100%; height:auto; border-radius:12px;"
+  crossorigin="anonymous"
+  >
 
   <!-- SCRIPTS -->
 
@@ -69,7 +76,8 @@
 
     const image = document.getElementById('toggle_image');
     let isExpanded = false;
-    var foregroundImage = ""; // ← IMPORTANTE: var para que el módulo pueda actualizarla globalmente
+    var foregroundImage = ""; 
+    var backgroundImage = "";
 
     image.addEventListener('click', () => {
       if (!isExpanded) {
@@ -83,7 +91,13 @@
         overlay.style.bottom = "0";
         overlay.style.zIndex = "9999";
 
-        overlay.style.backgroundImage = document.body.style.backgroundImage;
+        //overlay.style.backgroundImage = document.body.style.backgroundImage;
+        if (backgroundImage) {
+          overlay.style.backgroundImage = `url(${backgroundImage}&t=${Date.now()})`;
+        } else {
+          overlay.style.backgroundColor = "#000";
+        }
+
         overlay.style.backgroundSize = "cover";
         overlay.style.backgroundPosition = "center";
         overlay.style.cursor = 'pointer';
@@ -100,8 +114,10 @@
         fgOverlay.style.pointerEvents = "none";
         fgOverlay.style.zIndex = "2"; // foreground por delante
 
-        const fullImg = document.createElement('img');
-        fullImg.src = image.src;
+        //const fullImg = document.createElement('img');
+        //fullImg.src = image.src;
+
+        const fullImg = image.cloneNode(true);
 
         fullImg.style.width = "1500px";
         fullImg.style.height = "600px";
@@ -122,8 +138,6 @@
         isExpanded = true;
       }
     });
-
-
   </script>
 
   <script type="module">
@@ -151,7 +165,6 @@
       appId: "1:239135297594:web:0749c9fa69e0ba8613e503",
       measurementId: "G-Z05YJV52Q3"
     };
-
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -232,7 +245,7 @@
       }
     });*/
 
-    onSnapshot(bgRef, (snapshot) => {
+    /*onSnapshot(bgRef, (snapshot) => {
       if (snapshot.exists() && snapshot.data().url) {
         const bg = snapshot.data().url;
         document.body.style.backgroundImage = `url(${bg})`;
@@ -244,10 +257,19 @@
       } else {
         console.log("⚠️ Nessun background salvato ancora.");
       }
+    });*/
+
+    onSnapshot(bgRef, (snapshot) => {
+      if (snapshot.exists() && snapshot.data().url) {
+        backgroundImage = snapshot.data().url;
+        console.log("🎨 Background URL pronta (non caricata)");
+      } else {
+        backgroundImage = "";
+        console.log("⚠️ Nessun background");
+      }
     });
 
 
-    // ← AÑADIDO: cargar foreground exactamente igual que background
     const fgRef = doc(db, 'planner', 'foreground');
     //Old one
     /*onSnapshot(fgRef, (snapshot) => {
@@ -269,8 +291,6 @@
         console.log("⚠️ Nessun foreground salvato ancora.");
       }
     });
-
-
   </script>
 </body>
 </html>
