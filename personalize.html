@@ -80,7 +80,7 @@
     //Firebase imports
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
       import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-      import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+      import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
     //Old one
     /*const firebaseConfig = {
@@ -189,114 +189,131 @@
 
       window.deleteBackground = async function () {
         try {
+          const bgRef = ref(storage, "planner/background/background.png");
+
+          // BORRA EL ARCHIVO REAL
+          await deleteObject(bgRef).catch(() => {});
+
+          // ACTUALIZA FIRESTORE
           await setDoc(doc(db, "planner", "background"), {
-          url: "",
-          updated: new Date().toISOString()
-        });
+            url: null,
+            updated: new Date().toISOString()
+          });
+
           document.body.style.backgroundImage = "";
-          alert("🗑️ Background eliminado.");
+
+          alert("🗑️ Background eliminato.");
         } catch (err) {
           console.error(err);
-          alert("❌ Errore eliminando background." + (err && err.message ? err.message : String(err)));
+          alert("❌ Errore eliminando background.");
         }
       };
+
 
       window.deleteForeground = async function () {
-        try {
-          await setDoc(doc(db, "planner", "foreground"), {
-          url: "",
+      try {
+        const fgRef = ref(storage, "planner/foreground/foreground.png");
+
+        // BORRA EL ARCHIVO REAL
+        await deleteObject(fgRef).catch(() => {});
+
+        // ACTUALIZA FIRESTORE
+        await setDoc(doc(db, "planner", "foreground"), {
+          url: null,
           updated: new Date().toISOString()
         });
-          alert("🗑️ Foreground eliminado.");
-        } catch (err) {
-          console.error(err);
-          alert("❌ Errore eliminando foreground." + (err && err.message ? err.message : String(err)));
+
+        alert("🗑️ Foreground eliminato.");
+      } catch (err) {
+        console.error(err);
+        alert("❌ Errore eliminando foreground.");
+      }
+    };
+
+
+    const table = document.getElementById('planner');
+    const rows_select = document.getElementById('rows_selected');
+    const columns_select = document.getElementById('columns_selected');
+    const cellColors = ["#ADD8E6","#B0C4DE","#FFB6C1","#FFA500","#90EE90","#FFFFFF"];
+    let activeCell = null;
+    let colorClickActive = false;
+
+    // UTILS
+    function attachCellListeners(td){
+      td.addEventListener('focus',()=>activeCell=td);
+      td.addEventListener('mouseup',()=>activeCell=td);
+      td.addEventListener('keyup',()=>activeCell=td);
+      td.addEventListener('pointerdown',()=>activeCell=td);
+      if(!td.dataset.colorIndex) td.dataset.colorIndex=0;
+    }
+
+    function isNodeInside(node, container){
+      if(!node||!container) return false;
+      let cur=node.nodeType===3?node.parentNode:node;
+      while(cur){if(cur===container) return true; cur=cur.parentNode;}
+      return false;
+    }
+
+    function wrapRangeWithSpan(range, styles){
+      const span=document.createElement('span');
+      for(const k in styles) span.style[k]=styles[k];
+        span.appendChild(range.extractContents());
+      range.insertNode(span);
+      return span;
+    }
+
+    function applyStyleToSelectionOrCell(styles){
+      if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
+      const sel=window.getSelection();
+      if(sel&&sel.rangeCount>0){
+        const range=sel.getRangeAt(0);
+        if(isNodeInside(range.commonAncestorContainer,activeCell)){
+          if(sel.isCollapsed){
+            const span=document.createElement('span');
+            for(const k in styles) span.style[k]=styles[k];
+              span.innerHTML='\u200B';
+            range.insertNode(span);
+            sel.removeAllRanges();
+            const newRange=document.createRange();
+            newRange.setStart(span,1); newRange.collapse(true);
+            sel.addRange(newRange);
+            return;
+          } else {
+            wrapRangeWithSpan(range,styles);
+            sel.removeAllRanges();
+            return;
+          }
         }
-      };
+      }
+      for(const k in styles) activeCell.style[k]=styles[k];
+    }
 
-const table = document.getElementById('planner');
-const rows_select = document.getElementById('rows_selected');
-const columns_select = document.getElementById('columns_selected');
-const cellColors = ["#ADD8E6","#B0C4DE","#FFB6C1","#FFA500","#90EE90","#FFFFFF"];
-let activeCell = null;
-let colorClickActive = false;
-
-  // UTILS
-function attachCellListeners(td){
-  td.addEventListener('focus',()=>activeCell=td);
-  td.addEventListener('mouseup',()=>activeCell=td);
-  td.addEventListener('keyup',()=>activeCell=td);
-  td.addEventListener('pointerdown',()=>activeCell=td);
-  if(!td.dataset.colorIndex) td.dataset.colorIndex=0;
-}
-
-function isNodeInside(node, container){
-  if(!node||!container) return false;
-  let cur=node.nodeType===3?node.parentNode:node;
-  while(cur){if(cur===container) return true; cur=cur.parentNode;}
-  return false;
-}
-
-function wrapRangeWithSpan(range, styles){
-  const span=document.createElement('span');
-  for(const k in styles) span.style[k]=styles[k];
-    span.appendChild(range.extractContents());
-  range.insertNode(span);
-  return span;
-}
-
-function applyStyleToSelectionOrCell(styles){
-  if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
-  const sel=window.getSelection();
-  if(sel&&sel.rangeCount>0){
-    const range=sel.getRangeAt(0);
-    if(isNodeInside(range.commonAncestorContainer,activeCell)){
-      if(sel.isCollapsed){
-        const span=document.createElement('span');
-        for(const k in styles) span.style[k]=styles[k];
-          span.innerHTML='\u200B';
-        range.insertNode(span);
-        sel.removeAllRanges();
-        const newRange=document.createRange();
-        newRange.setStart(span,1); newRange.collapse(true);
-        sel.addRange(newRange);
-        return;
-      } else {
-        wrapRangeWithSpan(range,styles);
-        sel.removeAllRanges();
-        return;
+    function ensureListenersOnAllCells(){
+      for(let r=0;r<table.rows.length;r++){
+        for(let c=0;c<table.rows[r].cells.length;c++){
+          const td=table.rows[r].cells[c];
+          if(!td._listenersAttached){attachCellListeners(td); td._listenersAttached=true;}
+        }
       }
     }
-  }
-  for(const k in styles) activeCell.style[k]=styles[k];
-}
 
-function ensureListenersOnAllCells(){
-  for(let r=0;r<table.rows.length;r++){
-    for(let c=0;c<table.rows[r].cells.length;c++){
-      const td=table.rows[r].cells[c];
-      if(!td._listenersAttached){attachCellListeners(td); td._listenersAttached=true;}
-    }
-  }
-}
+      // TABLE
+    function createTable(){
 
-  // TABLE
-function createTable(){
+      const rows = 10;
+      const columns = 6;
+      const oldData = [];
 
-  const rows = 10;
-  const columns = 6;
-  const oldData = [];
-
-  for(let r=0;r<table.rows.length;r++){
-    oldData[r] = [];
-    for(let c=0;c<table.rows[r].cells.length;c++){
-      oldData[r][c] = {
-        text: table.rows[r].cells[c].innerHTML,
-        color: table.rows[r].cells[c].style.backgroundColor || "#FFFFFF",
-        rowspan: table.rows[r].cells[c].rowSpan || 1
-      };
-    }
-  }
+      for(let r=0;r<table.rows.length;r++){
+        oldData[r] = [];
+        for(let c=0;c<table.rows[r].cells.length;c++){
+          oldData[r][c] = {
+            text: table.rows[r].cells[c].innerHTML,
+            color: table.rows[r].cells[c].style.backgroundColor || "#FFFFFF",
+            rowspan: table.rows[r].cells[c].rowSpan || 1
+          };
+        }
+      }
 
   table.innerHTML='';
 
