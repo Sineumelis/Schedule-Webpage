@@ -435,12 +435,15 @@ window.tableToImage = async function () {
     return;
   }
 
+  const EXPORT_WIDTH = 1600;
+  const EXPORT_HEIGHT = 900;
+
   const rows = table.rows.length;
   const cellList = [];
   const occupied = new Set();
   let maxColIndex = -1;
 
-  // ===== SERIALIZAR TABLA (FORMA CORRECTA) =====
+  // ===== 1️⃣ SERIALIZAR TABLA (FORMA CORRECTA) =====
   for (let r = 0; r < rows; r++) {
     let colIndex = 0;
     const tr = table.rows[r];
@@ -478,7 +481,7 @@ window.tableToImage = async function () {
 
   try {
 
-    // ===== GUARDAR TABLA (COMO ANTES, PERFECTO) =====
+    // ===== 2️⃣ GUARDAR TABLA EN FIRESTORE =====
     await setDoc(doc(db, "planner", "latestTable"), {
       rows,
       columns,
@@ -486,24 +489,37 @@ window.tableToImage = async function () {
       updated: new Date().toISOString()
     });
 
-    // ===== GENERAR IMAGEN =====
+    // ===== 3️⃣ GENERAR IMAGEN A TAMAÑO FIJO =====
     const clone = table.cloneNode(true);
+    clone.style.width = EXPORT_WIDTH + "px";
+    clone.style.height = EXPORT_HEIGHT + "px";
     clone.style.margin = "0";
     clone.style.padding = "0";
     clone.style.borderCollapse = "collapse";
     clone.style.backgroundColor = "#FFFFFF";
 
-    document.body.appendChild(clone);
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    container.style.width = EXPORT_WIDTH + "px";
+    container.style.height = EXPORT_HEIGHT + "px";
+    container.style.backgroundColor = "#FFFFFF";
 
-    const canvas = await html2canvas(clone, {
-      scale: 3,
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
+    const canvas = await html2canvas(container, {
+      width: EXPORT_WIDTH,
+      height: EXPORT_HEIGHT,
+      scale: 1 / window.devicePixelRatio,
       backgroundColor: "#FFFFFF",
       useCORS: true
     });
 
-    document.body.removeChild(clone);
+    document.body.removeChild(container);
 
-    // ===== SUBIR IMAGEN A STORAGE =====
+    // ===== 4️⃣ SUBIR IMAGEN A STORAGE =====
     const imgData = canvas.toDataURL("image/png");
     const imageRef = ref(storage, "planner/images/latest.png");
 
