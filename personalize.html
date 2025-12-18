@@ -407,79 +407,70 @@ function createTable(){
 createTable();
 
   // BUTTON FUNCTIONS
-window.tableToImage = async function(){
-  if(!table) return alert("⚠️ No tabella per salvare. ⚠️");
-  const rows = table.rows.length;
-  const cellList = [];
-  const occupied = new Set(); 
-  let maxColIndex = -1;
-
-  for(let r=0;r<rows;r++){
-    let colIndex = 0;
-    const tr = table.rows[r];
-    for(let ci=0; ci<tr.cells.length; ci++){
-      while(occupied.has(`${r},${colIndex}`)) colIndex++;
-      const td = tr.cells[ci];
-      const rowspan = td.rowSpan || 1;
-      const colspan = td.colSpan || 1;
-      cellList.push({
-        row: r,
-        col: colIndex,
-        text: td.innerHTML,
-        color: td.style.backgroundColor || "#FFFFFF",
-        rowspan: rowspan,
-        colspan: colspan,
-        fontSize: td.style.fontSize || null
-      });
-      for(let rr = 0; rr < rowspan; rr++){
-        for(let cc = 0; cc < colspan; cc++){
-          occupied.add(`${r+rr},${colIndex+cc}`);
-        }
-      }
-      maxColIndex = Math.max(maxColIndex, colIndex + colspan - 1);
-      colIndex += colspan;
-    }
+window.tableToImage = async function () {
+  if (!table) {
+    alert("⚠️ Nessuna tabella da salvare. ⚠️");
+    return;
   }
 
-  const columns = Math.max(0, maxColIndex + 1);
+  const EXPORT_WIDTH = 1600;
+  const EXPORT_HEIGHT = 900;
 
-  try{
-    await setDoc(doc(db,"planner","latestTable"),{
-      rows,
-      columns,
-      cells: cellList,
-      updated: new Date().toISOString()
+  try {
+    // CLONE DELLA TABELLA
+    const clone = table.cloneNode(true);
+    clone.style.width = EXPORT_WIDTH + "px";
+    clone.style.height = EXPORT_HEIGHT + "px";
+    clone.style.margin = "0";
+    clone.style.padding = "0";
+    clone.style.borderCollapse = "collapse";
+    clone.style.backgroundColor = "#FFFFFF";
+
+    // CONTENITORE FUORI SCHERMO
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    container.style.width = EXPORT_WIDTH + "px";
+    container.style.height = EXPORT_HEIGHT + "px";
+    container.style.backgroundColor = "#FFFFFF";
+
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
+    // GENERAZIONE IMMAGINE
+    const canvas = await html2canvas(container, {
+      width: EXPORT_WIDTH,
+      height: EXPORT_HEIGHT,
+      scale: 1,
+      backgroundColor: "#FFFFFF",
+      useCORS: true
     });
 
-    const clone = table.cloneNode(true);
-    clone.style.margin="0"; clone.style.padding="0"; clone.style.borderCollapse="collapse"; clone.style.backgroundColor="#FFFFFF";
-    document.body.appendChild(clone);
-    const canvas = await html2canvas(clone,{scale:3,backgroundColor:"#FFFFFF",useCORS:true,removeContainer:true});
-    document.body.removeChild(clone);
-    //const imgData = canvas.toDataURL("image/png");
-    //await setDoc(doc(db,"planner","latestImage"),{
-    //  image:imgData,
-    //  updated:new Date().toISOString()
-    //});
+    document.body.removeChild(container);
+
+    // CONVERSIONE IN PNG
     const imgData = canvas.toDataURL("image/png");
 
-    const imageRef = ref(storage, `planner/images/latest.png`);
-
-    await uploadString(imageRef, imgData, 'data_url');
+    // UPLOAD SU FIREBASE STORAGE
+    const imageRef = ref(storage, "planner/images/latest.png");
+    await uploadString(imageRef, imgData, "data_url");
 
     const downloadURL = await getDownloadURL(imageRef);
 
+    // SALVATAGGIO URL
     await setDoc(doc(db, "planner", "latestImage"), {
       url: downloadURL,
       updated: new Date().toISOString()
     });
-    alert("✅ Tabella e immagine salvate correttamente.");
-  }
-   catch(e){console.error(e);
-   alert("❌ Errore durante il salvataggio." + (err && err.message ? err.message : String(err)));
- }
-}
 
+    alert("✅ Immagine salvata correttamente.");
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Errore durante il salvataggio dell'immagine.");
+  }
+};
 
 
 window.toggleColorMode = function () {
