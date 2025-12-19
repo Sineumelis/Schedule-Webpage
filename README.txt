@@ -1,5 +1,7 @@
 Hello, thank you for all the time, attention and stopping for Reading this :)
 
+-"INDEX" IS THE MAIN PAGE THAT SHOWS THE IMAGE AND "PERSONALIZE" IS THE ONE THAT MAKES THE TABLE.
+
 -The data is managed with accounts of mine using Firebase and a virtual card, it may stop working. In that case you could contact me to fix it or to help make an account for the user who runs this code in the momento in the platforms I used and make it work.
 
 -The page is currently hosted by my GITHUB account. There shouldn't be any problem with it but migration to a more manageable place of the user of this code is advised.
