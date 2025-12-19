@@ -1,629 +1,620 @@
-  <!DOCTYPE html>
-  <html lang="it">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Personalizza Tabella</title>
-    <link rel="stylesheet" href="personalize-style.css">
-  </head>
-  <body>
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Personalizza Tabella</title>
+      <link rel="stylesheet" href="personalize-style.css">
+    </head>
+    <body>
+      <!-- TABLE LAYOUT -->
+      <h1>Ciao bella persona :)</h1>
 
+      <br>
 
-    <!-- TABLE LAYOUT -->
+      <h3>-The size of the font for the days is 24 and the size for the other cells is 16.</h3>
+      <h3>-Foreground is the front image and background is the back one.</h3>
+      <h4>For them to fill good, their size must be 1600x900 (TV Resolution), otherwise they will deform.</h4>
+      <h4>No need to generate image of table in order to the background and foreground to be changed in the main page</h4>
+      <h4>but said page must be refreshed in order to see the changes.</h4>
+      <h3>-If you click Load Table, the latest table uploaded will load for easier modifications.</h3>
 
-    <h1>Ciao :)</h1>
+      <br>
 
-    <br>
+      <button onclick="tableToImage()">Generate Image and Save Online</button>
 
-    <h3>-The size of the font for the days is 24 and the size for the other cells is 16.</h3>
-    <h3>-Foreground is the front image and background is the back one.</h3>
-    <h4>For them to fill good, their size must be 1600x900 (TV Resolution), otherwise they will deform.</h4>
-    <h3>If you click Load Table, the latest table uploaded will load for easier modifications.</h3>
+      <button onclick="loadFromFirestore()">Load Table</button>
 
-    <br>
+      <button onclick="document.getElementById('bgInput').click()">Upload Background</button>
+      <input type="file" id="bgInput" accept="image/*" style="display:none" onchange="uploadBackground(event)">
 
-    <button onclick="tableToImage()">Generate Image and Save Online</button>
+      <button onclick="document.getElementById('fgInput').click()">Upload Foreground</button>
+      <input type="file" id="fgInput" accept="image/*" style="display:none" onchange="uploadForeground(event)">
 
-    <button onclick="loadFromFirestore()">Load Table</button>
+      <button onclick="deleteBackground()">Delete Background</button>
 
-    <button onclick="document.getElementById('bgInput').click()">Upload Background</button>
-    <input type="file" id="bgInput" accept="image/*" style="display:none" onchange="uploadBackground(event)">
+      <button onclick="deleteForeground()">Delete Foreground</button>
 
-    <button onclick="document.getElementById('fgInput').click()">Upload Foreground</button>
-    <input type="file" id="fgInput" accept="image/*" style="display:none" onchange="uploadForeground(event)">
+      <br><br>
 
-    <button onclick="deleteBackground()">Delete Background</button>
+      <div id="editorControls">
+        <label>Lettera:
+          <select id="fontSelect" onchange="applyFont()">
+            <option value="Arial">Arial</option>
+            <option value="Comic Sans">Comic Sans</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Myriad Pro">Myriad Pro</option>
+            <option value="Papyrus">Papyrus</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Verdana">Verdana</option>
+          </select>
+        </label>
 
-    <button onclick="deleteForeground()">Delete Foreground</button>
+        <label>Misurare:
+          <input type="number" min="1" value="24" id="fontSizeInput" onchange="applyFontSize()">
+        </label>
 
-    <br><br>
+        <button onclick="execCmd('bold')"><b>B</b></button>
+        <button onclick="execCmd('italic')"><i>I</i></button>
+        <button onclick="execCmd('underline')"><u>U</u></button>
+        <input type="color" id="fontColor" onchange="applyColor()" value="#000000">
+        <button onclick="applyCellStyle()">Applicare</button>
+      </div>
 
-    <div id="editorControls">
-      <label>Lettera:
-        <select id="fontSelect" onchange="applyFont()">
-          <option value="Arial">Arial</option>
-          <option value="Comic Sans">Comic Sans</option>
-          <option value="Courier New">Courier New</option>
-          <option value="Myriad Pro">Myriad Pro</option>
-          <option value="Papyrus">Papyrus</option>
-          <option value="Times New Roman">Times New Roman</option>
-          <option value="Verdana">Verdana</option>
-        </select>
+      <br>
+      <label>Cell Background Color: 
+        <input type="color" id="bgColorPicker" value="#ffffff">
       </label>
 
-      <label>Misurare:
-        <input type="number" min="1" value="24" id="fontSizeInput" onchange="applyFontSize()">
-      </label>
+      <button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
 
-      <button onclick="execCmd('bold')"><b>B</b></button>
-      <button onclick="execCmd('italic')"><i>I</i></button>
-      <button onclick="execCmd('underline')"><u>U</u></button>
-      <input type="color" id="fontColor" onchange="applyColor()" value="#000000">
-      <button onclick="applyCellStyle()">Applicare</button>
-    </div>
+      <br><br>
 
-    <br>
-    <label>Cell Background Color: 
-      <input type="color" id="bgColorPicker" value="#ffffff">
-    </label>
-
-    <button id="toggleColorModeBtn" onclick="toggleColorMode()">Attivare/Disabilitare colore</button>
-
-    <br><br>
-
-    <table id="planner"></table>
+      <table id="planner"></table>
 
 
-    <!-- SCRIPTS -->
+      <!-- SCRIPTS -->
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+      <script type="module">
 
-    <script type="module">
-
-    //Firebase imports
+      //Firebase imports
+      //Unless the same Firebase updates these shouldn't need to be changed
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
       import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
       import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-    //Old one
-    /*const firebaseConfig = {
-      apiKey: "AIzaSyBpaUCV3YYF3bQOV7icdsp8BNPu1k-QcxM",
-      authDomain: "schedule-it-69420.firebaseapp.com",
-      projectId: "schedule-it-69420",
-      storageBucket: "schedule-it-69420.appspot.com",
-      messagingSenderId: "541795813911",
-      appId: "1:541795813911:web:7e4e28e28990bcbfc16a52",
-      measurementId: "G-K5BR2NTY3C"
-    };*/
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyATbtAuHoMBpcKPFk8jAc2OOFwZ0wUPu6c",
-      authDomain: "tabella-it.firebaseapp.com",
-      projectId: "tabella-it",
-      storageBucket: "tabella-it.firebasestorage.app",
-      messagingSenderId: "239135297594",
-      appId: "1:239135297594:web:0749c9fa69e0ba8613e503",
-      measurementId: "G-Z05YJV52Q3"
-    };
-
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-      const storage = getStorage(app);
-
-      window.uploadBackground = async function (event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-
-        reader.onload = async function (e) {
-          try {
-            const base64Image = e.target.result;
-
-            const bgRef = ref(storage, "planner/background/background.png");
-            await uploadString(bgRef, base64Image, "data_url");
-
-            const downloadURL = await getDownloadURL(bgRef);
-
-            await setDoc(doc(db, "planner", "background"), {
-              url: downloadURL,
-              updated: new Date().toISOString()
-            });
-
-            document.body.style.backgroundImage = `url(${downloadURL})`;
-            document.body.style.backgroundSize = "cover";
-            document.body.style.backgroundPosition = "center";
-
-            alert("✅ Background salvato in Storage.");
-          } catch (err) {
-            console.error(err);
-            alert("❌ Errore background.");
-          }
-        };
-
-        reader.readAsDataURL(file);
+      //CONFIG FROM FIREBASE
+      //To be changed for the Firebase configs you use with this
+      const firebaseConfig = {
+        apiKey: "AIzaSyATbtAuHoMBpcKPFk8jAc2OOFwZ0wUPu6c",
+        authDomain: "tabella-it.firebaseapp.com",
+        projectId: "tabella-it",
+        storageBucket: "tabella-it.firebasestorage.app",
+        messagingSenderId: "239135297594",
+        appId: "1:239135297594:web:0749c9fa69e0ba8613e503",
+        measurementId: "G-Z05YJV52Q3"
       };
 
-      window.addEventListener("DOMContentLoaded", async () => {
-        try {
-          const snap = await getDoc(doc(db, "planner", "background"));
-          if (snap.exists()) {
-            const data = snap.data();
-            if (data.image) {
-              document.body.style.backgroundImage = `url(${data.url})`;
-              document.body.style.backgroundSize = "cover";
-              document.body.style.backgroundPosition = "center";
+      //Initialicers
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+      const table = document.getElementById('planner');
+      const rows_select = document.getElementById('rows_selected');
+      const columns_select = document.getElementById('columns_selected');
+      const cellColors = ["#ADD8E6","#B0C4DE","#FFB6C1","#FFA500","#90EE90","#FFFFFF"];
+      let activeCell = null;
+      let colorClickActive = false;
+
+      // UTILS
+      function attachCellListeners(td){
+        td.addEventListener('focus',()=>activeCell=td);
+        td.addEventListener('mouseup',()=>activeCell=td);
+        td.addEventListener('keyup',()=>activeCell=td);
+        td.addEventListener('pointerdown',()=>activeCell=td);
+        if(!td.dataset.colorIndex) td.dataset.colorIndex=0;
+      }
+
+      function isNodeInside(node, container){
+        if(!node||!container) return false;
+        let cur=node.nodeType===3?node.parentNode:node;
+        while(cur){if(cur===container) return true; cur=cur.parentNode;}
+        return false;
+      }
+
+      function wrapRangeWithSpan(range, styles){
+        const span=document.createElement('span');
+        for(const k in styles) span.style[k]=styles[k];
+          span.appendChild(range.extractContents());
+        range.insertNode(span);
+        return span;
+      }
+
+      function applyStyleToSelectionOrCell(styles){
+        if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
+        const sel=window.getSelection();
+        if(sel&&sel.rangeCount>0){
+          const range=sel.getRangeAt(0);
+          if(isNodeInside(range.commonAncestorContainer,activeCell)){
+            if(sel.isCollapsed){
+              const span=document.createElement('span');
+              for(const k in styles) span.style[k]=styles[k];
+                span.innerHTML='\u200B';
+              range.insertNode(span);
+              sel.removeAllRanges();
+              const newRange=document.createRange();
+              newRange.setStart(span,1); newRange.collapse(true);
+              sel.addRange(newRange);
+              return;
+            } else {
+              wrapRangeWithSpan(range,styles);
+              sel.removeAllRanges();
+              return;
             }
           }
-        } catch (e) {
-          console.error("Error cargando fondo:", e);
         }
+        for(const k in styles) activeCell.style[k]=styles[k];
+      }
+
+      function ensureListenersOnAllCells(){
+        for(let r=0;r<table.rows.length;r++){
+          for(let c=0;c<table.rows[r].cells.length;c++){
+            const td=table.rows[r].cells[c];
+            if(!td._listenersAttached){attachCellListeners(td); td._listenersAttached=true;}
+          }
+        }
+      }
+
+      //TABLE CREATION (Could be optimizable to not make separated the first 2 rows)
+      function createTable(){
+        const rows = 10;
+        const columns = 6;
+        const oldData = [];
+
+        for(let r=0;r<table.rows.length;r++){
+          oldData[r] = [];
+          for(let c=0;c<table.rows[r].cells.length;c++){
+            oldData[r][c] = {
+              text: table.rows[r].cells[c].innerHTML,
+              color: table.rows[r].cells[c].style.backgroundColor || "#FFFFFF",
+              rowspan: table.rows[r].cells[c].rowSpan || 1
+            };
+          }
+        }
+
+      table.innerHTML='';
+
+      const topRow = table.insertRow();
+      const topCell1 = topRow.insertCell();
+      topCell1.colSpan = 2;
+      topCell1.textContent = "",
+      topCell1.contentEditable = "true";         
+      attachCellListeners(topCell1);              
+
+      const topCell2 = topRow.insertCell();
+      topCell2.colSpan = 4;
+      topCell2.textContent = "Aule",
+      topCell2.contentEditable = "true";          
+      attachCellListeners(topCell2);              
+
+      for(let r=0;r<rows;r++){
+        const tr=table.insertRow();
+        for(let c=0;c<columns;c++){
+          if(r>0 && c==0 && table.rows[r]?.cells[0]?.rowSpan==2) continue;
+          const td=tr.insertCell();
+          td.contentEditable="true";
+          attachCellListeners(td);
+
+          if(c==0 && r%2==0 && r+1<rows) td.rowSpan=2;
+
+          //Default text for some cells
+          const defaultCellText = {
+            "0,0": "Lunedì",
+            "0,1": "☀️ Mattina",
+            "1,1": "🌙 Pomeriggio",
+            "2,0": "Martedì",
+            "2,1": "☀️ Mattina",
+            "3,1": "🌙 Pomeriggio",
+            "4,0": "Mercoledì",
+            "4,1": "☀️ Mattina",
+            "5,1": "🌙 Pomeriggio",
+            "6,0": "Giovedì",
+            "6,1": "☀️ Mattina",
+            "7,1": "🌙 Pomeriggio",
+            "8,0": "Venerdì",
+            "8,1": "☀️ Mattina",
+            "9,1": "🌙 Pomeriggio",
+            "10,0": "Venerdì",
+            "10,1": "☀️ Mattina",
+            "11,1": "🌙 Pomeriggio",
+          };
+
+          const key = `${r},${c}`;
+          if(oldData[r] && oldData[r][c] !== undefined){
+            td.innerHTML = oldData[r][c].text;
+            td.style.backgroundColor = oldData[r][c].color;
+          } else if(defaultCellText[key]) {
+            td.innerHTML = defaultCellText[key];
+          } else {
+            td.innerHTML = ""; 
+          }
+
+          if(td.innerHTML.includes("Pomeriggio")){
+            td.style.backgroundColor = "#92c3e4";
+          }
+
+          //Default font sizes for each cell
+          const fontSizes = {
+            "0,0": "24px",
+            "0,1": "16px",
+            "1,1": "16px",
+            "2,0": "24px",
+            "4,0": "24px",
+            "6,0": "24px",
+            "8,0": "24px"
+          };
+
+          if(fontSizes[key]) {
+            td.style.fontSize = fontSizes[key];
+          }
+
+          td.dataset.colorIndex = 0;
+          td.addEventListener('click',()=>{
+            if(!colorClickActive) return;
+            let i = parseInt(td.dataset.colorIndex);
+            i = (i+1)%cellColors.length;
+            td.style.backgroundColor = cellColors[i];
+            td.dataset.colorIndex = i;
+          });
+        }
+      }
+
+    //Default texts in the first 2 rows
+    const texts = ["GIORNO", "ORA", "GUGLIERMO MARCONI", "ENRICO FERMI", "RITA LEVI MONTALCINI", "MARGHERITA HACK"];
+    const headerRow2 = table.insertRow(1);
+    for (let c = 0; c < 6; c++) {
+      const td = headerRow2.insertCell();
+      td.textContent = texts[c];
+      td.contentEditable = "true";
+      attachCellListeners(td);
+      td.dataset.colorIndex = 0;
+    }
+
+    for (let cell of topRow.cells) {
+      cell.style.height = "30px";
+    }
+    for (let cell of headerRow2.cells) {
+      cell.style.height = "30px";
+    }
+
+    ensureListenersOnAllCells();
+  }
+
+  createTable();
+
+  //BUTTON FUNCTIONS
+  //METHOD TO UPLOAD AN IMAGE OF THE TABLE AND THE DATA FROM IT TO FIREBASE STORAGE AND FIRESTORE DATABASE
+  window.tableToImage = async function () {
+
+    if (!table) {
+      alert("⚠️ No tabella per salvare. ⚠️");
+      return;
+    }
+
+    //Size of exported image
+    const EXPORT_WIDTH = 1600;
+    const EXPORT_HEIGHT = 900;
+
+    const rows = table.rows.length;
+    const cellList = [];
+    const occupied = new Set();
+    let maxColIndex = -1;
+
+    //Upload data of table
+    for (let r = 0; r < rows; r++) {
+      let colIndex = 0;
+      const tr = table.rows[r];
+
+      for (let ci = 0; ci < tr.cells.length; ci++) {
+
+        while (occupied.has(`${r},${colIndex}`)) colIndex++;
+
+        const td = tr.cells[ci];
+        const rowspan = td.rowSpan || 1;
+        const colspan = td.colSpan || 1;
+
+        cellList.push({
+          row: r,
+          col: colIndex,
+          text: td.innerHTML,
+          color: td.style.backgroundColor || "#FFFFFF",
+          fontSize: td.style.fontSize || null,
+          rowspan,
+          colspan
+        });
+
+        for (let rr = 0; rr < rowspan; rr++) {
+          for (let cc = 0; cc < colspan; cc++) {
+            occupied.add(`${r + rr},${colIndex + cc}`);
+          }
+        }
+
+        maxColIndex = Math.max(maxColIndex, colIndex + colspan - 1);
+        colIndex += colspan;
+      }
+    }
+
+    const columns = Math.max(0, maxColIndex + 1);
+
+    try {
+
+      //Save in Firestore Database
+      await setDoc(doc(db, "planner", "latestTable"), {
+        rows,
+        columns,
+        cells: cellList,
+        updated: new Date().toISOString()
       });
 
-      window.uploadForeground = async function (event) {
-        const file = event.target.files[0];
-        if (!file) return;
+      //Save image in Firebase Storage with fixed size
+      const clone = table.cloneNode(true);
+      clone.style.width = EXPORT_WIDTH + "px";
+      clone.style.height = EXPORT_HEIGHT + "px";
+      clone.style.margin = "0";
+      clone.style.padding = "0";
+      clone.style.borderCollapse = "collapse";
+      clone.style.backgroundColor = "#FFFFFF";
 
-        const reader = new FileReader();
+      const container = document.createElement("div");
+      container.style.position = "fixed";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.width = EXPORT_WIDTH + "px";
+      container.style.height = EXPORT_HEIGHT + "px";
+      container.style.backgroundColor = "#FFFFFF";
 
-        reader.onload = async function (e) {
+      container.appendChild(clone);
+      document.body.appendChild(container);
+
+      const canvas = await html2canvas(container, {
+        width: EXPORT_WIDTH,
+        height: EXPORT_HEIGHT,
+        scale: 1 / window.devicePixelRatio,
+        backgroundColor: "#FFFFFF",
+        useCORS: true
+      });
+
+      document.body.removeChild(container);
+
+      //Upload the image to Firebase Storage
+      const imgData = canvas.toDataURL("image/png");
+      const imageRef = ref(storage, "planner/images/latest.png");
+
+      await uploadString(imageRef, imgData, "data_url");
+
+      const downloadURL = await getDownloadURL(imageRef);
+
+      await setDoc(doc(db, "planner", "latestImage"), {
+        url: downloadURL,
+        updated: new Date().toISOString()
+      });
+
+      alert("✅ Tabella e immagine salvate correttamente.");
+
+    } catch (err) {
+      console.error(err);
+      alert("❌ Errore durante il salvataggio. " + (err?.message || err));
+    }
+  };
+
+  //METHOD TO CHANGE COLOR OF CELLS
+  window.toggleColorMode = function () {
+    colorClickActive = !colorClickActive;
+    const btn = document.getElementById('toggleColorModeBtn');
+    btn.textContent = colorClickActive ? "Disabilitare colore" : "Attivare colore";
+  };
+
+  table.addEventListener('click', (e) => {
+    if (!colorClickActive) return; 
+    const td = e.target.closest('td');
+    if (!td) return;
+    const color = document.getElementById('bgColorPicker').value;
+    td.style.backgroundColor = color;
+  });
+
+  //METHOD TO CHARGE THE LAST TABLE SAVED TO FIRESTORE
+  window.loadFromFirestore = async function(){
+    try{
+      const snapshot = await getDoc(doc(db,"planner","latestTable"));
+      if(!snapshot.exists()) return alert("⚠️ Nessun dato salvato. ⚠️");
+      const data = snapshot.data();
+      const {rows, columns, cells} = data;
+      table.innerHTML = '';
+      const occupied = new Set();
+
+      for(let r = 0; r < rows; r++){
+        const tr = table.insertRow();
+        for(let c = 0; c < columns; c++){
+          if(occupied.has(`${r},${c}`)) continue; 
+          const cellData = cells.find(cell => cell.row === r && cell.col === c);
+          const td = tr.insertCell();
+            if(r < 2) td.style.height = "30px"; //Force the size of the 2 first rows
+            td.contentEditable = "true";
+            attachCellListeners(td);
+
+            if(cellData){
+              td.innerHTML = cellData.text || "";
+              td.style.backgroundColor = cellData.color || "#FFFFFF";
+              if(cellData.fontSize) td.style.fontSize = cellData.fontSize;
+              td.rowSpan = cellData.rowspan || 1;
+              td.colSpan = cellData.colspan || 1;
+            } else {
+              td.innerHTML = "";
+              td.style.backgroundColor = "#FFFFFF";
+              td.rowSpan = 1;
+              td.colSpan = 1;
+            }
+
+            const rs = td.rowSpan || 1;
+            const cs = td.colSpan || 1;
+            for(let rr = 0; rr < rs; rr++){
+              for(let cc = 0; cc < cs; cc++){
+                occupied.add(`${r+rr},${c+cc}`);
+              }
+            }
+
+            td.dataset.colorIndex = 0;
+            td.addEventListener('click',()=>{ if(!colorClickActive) return; let i=parseInt(td.dataset.colorIndex||"0"); i=(i+1)%cellColors.length; td.style.backgroundColor=cellColors[i]; td.dataset.colorIndex=i; });
+          }
+        }
+
+        if(rows_select) rows_select.value = rows;
+        if(columns_select) columns_select.value = columns;
+
+        ensureListenersOnAllCells();
+        alert("✅ Tabella caricata correttamente.");
+      }catch(e){
+        console.error(e);
+        alert("❌ Errore durante il caricamento." + (err && err.message ? err.message : String(err)));
+      }
+    }
+
+    window.execCmd=function(command){
+      if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
+      activeCell.focus();
+      document.execCommand(command,false,null);
+    }
+
+    //METHODS TO CHANGE FONT, FONT SIZE AND FONT SIZE
+    window.applyFont=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value}); }
+    window.applyFontSize=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); const size=document.getElementById('fontSizeInput').value; if(!size||isNaN(size)) return alert("⚠️ Inserisci un numero valido per la dimensione! ⚠️"); applyStyleToSelectionOrCell({fontSize:size+'px'});}
+    window.applyColor=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); applyStyleToSelectionOrCell({color:document.getElementById('fontColor').value}); }
+    window.applyCellStyle=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value,fontSize:document.getElementById('fontSizeInput').value+'px',color:document.getElementById('fontColor').value}); }
+
+    //METHOD TO UPLOAD A BACKGROUND THAT WILL REPLACE WITH THE NEW ONE IN FIREBASE STORAGE
+        window.uploadBackground = async function (event) {
+          const file = event.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+
+          reader.onload = async function (e) {
+            try {
+              const base64Image = e.target.result;
+
+              const bgRef = ref(storage, "planner/background/background.png");
+              await uploadString(bgRef, base64Image, "data_url");
+
+              const downloadURL = await getDownloadURL(bgRef);
+
+              await setDoc(doc(db, "planner", "background"), {
+                url: downloadURL,
+                updated: new Date().toISOString()
+              });
+
+              document.body.style.backgroundImage = `url(${downloadURL})`;
+              document.body.style.backgroundSize = "cover";
+              document.body.style.backgroundPosition = "center";
+
+              alert("✅ Background salvato in Storage.");
+            } catch (err) {
+              console.error(err);
+              alert("❌ Errore background.");
+            }
+          };
+
+          reader.readAsDataURL(file);
+        };
+
+        window.addEventListener("DOMContentLoaded", async () => {
           try {
-            const base64Image = e.target.result;
+            const snap = await getDoc(doc(db, "planner", "background"));
+            if (snap.exists()) {
+              const data = snap.data();
+              if (data.image) {
+                document.body.style.backgroundImage = `url(${data.url})`;
+                document.body.style.backgroundSize = "cover";
+                document.body.style.backgroundPosition = "center";
+              }
+            }
+          } catch (e) {
+            console.error("Error cargando fondo:", e);
+          }
+        });
 
-            const fgRef = ref(storage, "planner/foreground/foreground.png");
-            await uploadString(fgRef, base64Image, "data_url");
+        //METHOD TO UPLOAD A FOREGROUND THAT WILL REPLACE WITH THE NEW ONE IN FIREBASE STORAGE
+        window.uploadForeground = async function (event) {
+          const file = event.target.files[0];
+          if (!file) return;
 
-            const downloadURL = await getDownloadURL(fgRef);
+          const reader = new FileReader();
 
-            await setDoc(doc(db, "planner", "foreground"), {
-              url: downloadURL,
+          reader.onload = async function (e) {
+            try {
+              const base64Image = e.target.result;
+
+              const fgRef = ref(storage, "planner/foreground/foreground.png");
+              await uploadString(fgRef, base64Image, "data_url");
+
+              const downloadURL = await getDownloadURL(fgRef);
+
+              await setDoc(doc(db, "planner", "foreground"), {
+                url: downloadURL,
+                updated: new Date().toISOString()
+              });
+
+              alert("✅ Foreground salvato in Storage.");
+            } catch (err) {
+              console.error(err);
+              alert("❌ Errore foreground.");
+            }
+          };
+
+          reader.readAsDataURL(file);
+        };
+
+        window.deleteBackground = async function () {
+          try {
+            const bgRef = ref(storage, "planner/background/background.png");
+
+            await deleteObject(bgRef).catch(() => {});
+
+            await setDoc(doc(db, "planner", "background"), {
+              url: null,
               updated: new Date().toISOString()
             });
 
-            alert("✅ Foreground salvato in Storage.");
+            document.body.style.backgroundImage = "";
+
+            alert("🗑️ Background eliminato.");
           } catch (err) {
             console.error(err);
-            alert("❌ Errore foreground.");
+            alert("❌ Errore eliminando background.");
           }
         };
 
-        reader.readAsDataURL(file);
-      };
-
-      window.deleteBackground = async function () {
+        //METHOD TO DELETE THE FOREGROUND UPLOADED TO FIREBASE STORAGE
+        window.deleteForeground = async function () {
         try {
-          const bgRef = ref(storage, "planner/background/background.png");
+          const fgRef = ref(storage, "planner/foreground/foreground.png");
 
           // BORRA EL ARCHIVO REAL
-          await deleteObject(bgRef).catch(() => {});
+          await deleteObject(fgRef).catch(() => {});
 
           // ACTUALIZA FIRESTORE
-          await setDoc(doc(db, "planner", "background"), {
+          await setDoc(doc(db, "planner", "foreground"), {
             url: null,
             updated: new Date().toISOString()
           });
 
-          document.body.style.backgroundImage = "";
-
-          alert("🗑️ Background eliminato.");
+          alert("🗑️ Foreground eliminato.");
         } catch (err) {
           console.error(err);
-          alert("❌ Errore eliminando background.");
+          alert("❌ Errore eliminando foreground.");
         }
       };
-
-
-      window.deleteForeground = async function () {
-      try {
-        const fgRef = ref(storage, "planner/foreground/foreground.png");
-
-        // BORRA EL ARCHIVO REAL
-        await deleteObject(fgRef).catch(() => {});
-
-        // ACTUALIZA FIRESTORE
-        await setDoc(doc(db, "planner", "foreground"), {
-          url: null,
-          updated: new Date().toISOString()
-        });
-
-        alert("🗑️ Foreground eliminato.");
-      } catch (err) {
-        console.error(err);
-        alert("❌ Errore eliminando foreground.");
-      }
-    };
-
-
-    const table = document.getElementById('planner');
-    const rows_select = document.getElementById('rows_selected');
-    const columns_select = document.getElementById('columns_selected');
-    const cellColors = ["#ADD8E6","#B0C4DE","#FFB6C1","#FFA500","#90EE90","#FFFFFF"];
-    let activeCell = null;
-    let colorClickActive = false;
-
-    // UTILS
-    function attachCellListeners(td){
-      td.addEventListener('focus',()=>activeCell=td);
-      td.addEventListener('mouseup',()=>activeCell=td);
-      td.addEventListener('keyup',()=>activeCell=td);
-      td.addEventListener('pointerdown',()=>activeCell=td);
-      if(!td.dataset.colorIndex) td.dataset.colorIndex=0;
-    }
-
-    function isNodeInside(node, container){
-      if(!node||!container) return false;
-      let cur=node.nodeType===3?node.parentNode:node;
-      while(cur){if(cur===container) return true; cur=cur.parentNode;}
-      return false;
-    }
-
-    function wrapRangeWithSpan(range, styles){
-      const span=document.createElement('span');
-      for(const k in styles) span.style[k]=styles[k];
-        span.appendChild(range.extractContents());
-      range.insertNode(span);
-      return span;
-    }
-
-    function applyStyleToSelectionOrCell(styles){
-      if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
-      const sel=window.getSelection();
-      if(sel&&sel.rangeCount>0){
-        const range=sel.getRangeAt(0);
-        if(isNodeInside(range.commonAncestorContainer,activeCell)){
-          if(sel.isCollapsed){
-            const span=document.createElement('span');
-            for(const k in styles) span.style[k]=styles[k];
-              span.innerHTML='\u200B';
-            range.insertNode(span);
-            sel.removeAllRanges();
-            const newRange=document.createRange();
-            newRange.setStart(span,1); newRange.collapse(true);
-            sel.addRange(newRange);
-            return;
-          } else {
-            wrapRangeWithSpan(range,styles);
-            sel.removeAllRanges();
-            return;
-          }
-        }
-      }
-      for(const k in styles) activeCell.style[k]=styles[k];
-    }
-
-    function ensureListenersOnAllCells(){
-      for(let r=0;r<table.rows.length;r++){
-        for(let c=0;c<table.rows[r].cells.length;c++){
-          const td=table.rows[r].cells[c];
-          if(!td._listenersAttached){attachCellListeners(td); td._listenersAttached=true;}
-        }
-      }
-    }
-
-      // TABLE
-    function createTable(){
-
-      const rows = 10;
-      const columns = 6;
-      const oldData = [];
-
-      for(let r=0;r<table.rows.length;r++){
-        oldData[r] = [];
-        for(let c=0;c<table.rows[r].cells.length;c++){
-          oldData[r][c] = {
-            text: table.rows[r].cells[c].innerHTML,
-            color: table.rows[r].cells[c].style.backgroundColor || "#FFFFFF",
-            rowspan: table.rows[r].cells[c].rowSpan || 1
-          };
-        }
-      }
-
-  table.innerHTML='';
-
-  const topRow = table.insertRow();
-  const topCell1 = topRow.insertCell();
-  topCell1.colSpan = 2;
-  topCell1.textContent = "",
-  topCell1.contentEditable = "true";         
-  attachCellListeners(topCell1);              
-
-  const topCell2 = topRow.insertCell();
-  topCell2.colSpan = 4;
-  topCell2.textContent = "Aule",
-  topCell2.contentEditable = "true";          
-  attachCellListeners(topCell2);              
-
-  for(let r=0;r<rows;r++){
-    const tr=table.insertRow();
-    for(let c=0;c<columns;c++){
-      if(r>0 && c==0 && table.rows[r]?.cells[0]?.rowSpan==2) continue;
-      const td=tr.insertCell();
-      td.contentEditable="true";
-      attachCellListeners(td);
-
-      if(c==0 && r%2==0 && r+1<rows) td.rowSpan=2;
-
-      const defaultCellText = {
-        "0,0": "Lunedì",
-        "0,1": "☀️ Mattina",
-        "1,1": "🌙 Pomeriggio",
-        "2,0": "Martedì",
-        "2,1": "☀️ Mattina",
-        "3,1": "🌙 Pomeriggio",
-        "4,0": "Mercoledì",
-        "4,1": "☀️ Mattina",
-        "5,1": "🌙 Pomeriggio",
-        "6,0": "Giovedì",
-        "6,1": "☀️ Mattina",
-        "7,1": "🌙 Pomeriggio",
-        "8,0": "Venerdì",
-        "8,1": "☀️ Mattina",
-        "9,1": "🌙 Pomeriggio",
-        "10,0": "Venerdì",
-        "10,1": "☀️ Mattina",
-        "11,1": "🌙 Pomeriggio",
-      };
-
-      const key = `${r},${c}`;
-      if(oldData[r] && oldData[r][c] !== undefined){
-        td.innerHTML = oldData[r][c].text;
-        td.style.backgroundColor = oldData[r][c].color;
-      } else if(defaultCellText[key]) {
-        td.innerHTML = defaultCellText[key];
-      } else {
-        td.innerHTML = ""; 
-      }
-
-      if(td.innerHTML.includes("Pomeriggio")){
-        td.style.backgroundColor = "#92c3e4";
-      }
-
-      const fontSizes = {
-        "0,0": "24px",
-        "0,1": "16px",
-        "1,1": "16px",
-        "2,0": "24px",
-        "4,0": "24px",
-        "6,0": "24px",
-        "8,0": "24px"
-      };
-
-      if(fontSizes[key]) {
-        td.style.fontSize = fontSizes[key];
-      }
-
-
-      td.dataset.colorIndex = 0;
-      td.addEventListener('click',()=>{
-        if(!colorClickActive) return;
-        let i = parseInt(td.dataset.colorIndex);
-        i = (i+1)%cellColors.length;
-        td.style.backgroundColor = cellColors[i];
-        td.dataset.colorIndex = i;
-      });
-    }
-  }
-
-  const textos = ["GIORNO", "ORA", "GUGLIERMO MARCONI", "ENRICO FERMI", "RITA LEVI MONTALCINI", "MARGHERITA HACK"];
-  const headerRow2 = table.insertRow(1);
-  for (let c = 0; c < 6; c++) {
-    const td = headerRow2.insertCell();
-    td.textContent = textos[c];
-    td.contentEditable = "true";
-    attachCellListeners(td);
-    td.dataset.colorIndex = 0;
-  }
-
-  for (let cell of topRow.cells) {
-    cell.style.height = "30px";
-  }
-  for (let cell of headerRow2.cells) {
-    cell.style.height = "30px";
-  }
-
-  ensureListenersOnAllCells();
-}
-
-createTable();
-
-  // BUTTON FUNCTIONS
-// BUTTON FUNCTIONS
-window.tableToImage = async function () {
-
-  if (!table) {
-    alert("⚠️ No tabella per salvare. ⚠️");
-    return;
-  }
-
-  const EXPORT_WIDTH = 1600;
-  const EXPORT_HEIGHT = 900;
-
-  const rows = table.rows.length;
-  const cellList = [];
-  const occupied = new Set();
-  let maxColIndex = -1;
-
-  // ===== 1️⃣ SERIALIZAR TABLA (FORMA CORRECTA) =====
-  for (let r = 0; r < rows; r++) {
-    let colIndex = 0;
-    const tr = table.rows[r];
-
-    for (let ci = 0; ci < tr.cells.length; ci++) {
-
-      while (occupied.has(`${r},${colIndex}`)) colIndex++;
-
-      const td = tr.cells[ci];
-      const rowspan = td.rowSpan || 1;
-      const colspan = td.colSpan || 1;
-
-      cellList.push({
-        row: r,
-        col: colIndex,
-        text: td.innerHTML,
-        color: td.style.backgroundColor || "#FFFFFF",
-        fontSize: td.style.fontSize || null,
-        rowspan,
-        colspan
-      });
-
-      for (let rr = 0; rr < rowspan; rr++) {
-        for (let cc = 0; cc < colspan; cc++) {
-          occupied.add(`${r + rr},${colIndex + cc}`);
-        }
-      }
-
-      maxColIndex = Math.max(maxColIndex, colIndex + colspan - 1);
-      colIndex += colspan;
-    }
-  }
-
-  const columns = Math.max(0, maxColIndex + 1);
-
-  try {
-
-    // ===== 2️⃣ GUARDAR TABLA EN FIRESTORE =====
-    await setDoc(doc(db, "planner", "latestTable"), {
-      rows,
-      columns,
-      cells: cellList,
-      updated: new Date().toISOString()
-    });
-
-    // ===== 3️⃣ GENERAR IMAGEN A TAMAÑO FIJO =====
-    const clone = table.cloneNode(true);
-    clone.style.width = EXPORT_WIDTH + "px";
-    clone.style.height = EXPORT_HEIGHT + "px";
-    clone.style.margin = "0";
-    clone.style.padding = "0";
-    clone.style.borderCollapse = "collapse";
-    clone.style.backgroundColor = "#FFFFFF";
-
-    const container = document.createElement("div");
-    container.style.position = "fixed";
-    container.style.left = "-9999px";
-    container.style.top = "0";
-    container.style.width = EXPORT_WIDTH + "px";
-    container.style.height = EXPORT_HEIGHT + "px";
-    container.style.backgroundColor = "#FFFFFF";
-
-    container.appendChild(clone);
-    document.body.appendChild(container);
-
-    const canvas = await html2canvas(container, {
-      width: EXPORT_WIDTH,
-      height: EXPORT_HEIGHT,
-      scale: 1 / window.devicePixelRatio,
-      backgroundColor: "#FFFFFF",
-      useCORS: true
-    });
-
-    document.body.removeChild(container);
-
-    // ===== 4️⃣ SUBIR IMAGEN A STORAGE =====
-    const imgData = canvas.toDataURL("image/png");
-    const imageRef = ref(storage, "planner/images/latest.png");
-
-    await uploadString(imageRef, imgData, "data_url");
-
-    const downloadURL = await getDownloadURL(imageRef);
-
-    await setDoc(doc(db, "planner", "latestImage"), {
-      url: downloadURL,
-      updated: new Date().toISOString()
-    });
-
-    alert("✅ Tabella e immagine salvate correttamente.");
-
-  } catch (err) {
-    console.error(err);
-    alert("❌ Errore durante il salvataggio. " + (err?.message || err));
-  }
-};
-
-
-
-window.toggleColorMode = function () {
-  colorClickActive = !colorClickActive;
-  const btn = document.getElementById('toggleColorModeBtn');
-  btn.textContent = colorClickActive ? "Disabilitare colore" : "Attivare colore";
-};
-
-table.addEventListener('click', (e) => {
-  if (!colorClickActive) return; 
-  const td = e.target.closest('td');
-  if (!td) return;
-  const color = document.getElementById('bgColorPicker').value;
-  td.style.backgroundColor = color;
-});
-
-window.loadFromFirestore = async function(){
-  try{
-    const snapshot = await getDoc(doc(db,"planner","latestTable"));
-    if(!snapshot.exists()) return alert("⚠️ Nessun dato salvato. ⚠️");
-    const data = snapshot.data();
-    const {rows, columns, cells} = data;
-    table.innerHTML = '';
-    const occupied = new Set();
-
-    for(let r = 0; r < rows; r++){
-      const tr = table.insertRow();
-      for(let c = 0; c < columns; c++){
-        if(occupied.has(`${r},${c}`)) continue; 
-        const cellData = cells.find(cell => cell.row === r && cell.col === c);
-        const td = tr.insertCell();
-          if(r < 2) td.style.height = "30px"; //Force the size of the 2 first rows
-          td.contentEditable = "true";
-          attachCellListeners(td);
-
-          if(cellData){
-            td.innerHTML = cellData.text || "";
-            td.style.backgroundColor = cellData.color || "#FFFFFF";
-            if(cellData.fontSize) td.style.fontSize = cellData.fontSize;
-            td.rowSpan = cellData.rowspan || 1;
-            td.colSpan = cellData.colspan || 1;
-          } else {
-            td.innerHTML = "";
-            td.style.backgroundColor = "#FFFFFF";
-            td.rowSpan = 1;
-            td.colSpan = 1;
-          }
-
-          const rs = td.rowSpan || 1;
-          const cs = td.colSpan || 1;
-          for(let rr = 0; rr < rs; rr++){
-            for(let cc = 0; cc < cs; cc++){
-              occupied.add(`${r+rr},${c+cc}`);
-            }
-          }
-
-          td.dataset.colorIndex = 0;
-          td.addEventListener('click',()=>{ if(!colorClickActive) return; let i=parseInt(td.dataset.colorIndex||"0"); i=(i+1)%cellColors.length; td.style.backgroundColor=cellColors[i]; td.dataset.colorIndex=i; });
-        }
-      }
-
-      if(rows_select) rows_select.value = rows;
-      if(columns_select) columns_select.value = columns;
-
-      ensureListenersOnAllCells();
-      alert("✅ Tabella caricata correttamente.");
-    }catch(e){
-      console.error(e);
-      alert("❌ Errore durante il caricamento." + (err && err.message ? err.message : String(err)));
-    }
-  }
-
-  window.execCmd=function(command){
-    if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️");
-    activeCell.focus();
-    document.execCommand(command,false,null);
-  }
-
-  window.applyFont=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value}); }
-  window.applyFontSize=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); const size=document.getElementById('fontSizeInput').value; if(!size||isNaN(size)) return alert("⚠️ Inserisci un numero valido per la dimensione! ⚠️"); applyStyleToSelectionOrCell({fontSize:size+'px'});}
-  window.applyColor=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima!"); applyStyleToSelectionOrCell({color:document.getElementById('fontColor').value}); }
-  window.applyCellStyle=function(){ if(!activeCell) return alert("⚠️ Seleziona una cella prima! ⚠️"); applyStyleToSelectionOrCell({fontFamily:document.getElementById('fontSelect').value,fontSize:document.getElementById('fontSizeInput').value+'px',color:document.getElementById('fontColor').value}); }
-
-</script>
-
-</body>
-</html>
+  </script>
+  </body>
+  </html>
