@@ -8,7 +8,7 @@ Hello, thank you for all the time, attention and stopping for Reading this :)
 
 -There is a CORS file that I added to the Firebase Database via commands in the terminal. Not sure if it is really needed but it helps code to show and work in some places that don't admit unsafe routes in webpages.
 
--Size of table can be changed in "index-style.css" if needed to adjust any foreground or background to it (It's a bit rudimentary but Works).
+-Size (mostly padding) of table can be changed in "index-style.css" if needed to adjust any foreground or background to it (It's a bit rudimentary but Works) or in "Personalize.html" via changing the value of const "EXPORT_WIDTH = 1600;" AND "const EXPORT_HEIGHT = 900;"
 
 -There is a old version in the commits of this proyect where the image would be clickable and show a full screen, loading images and everything with an OnSnapshot which didn't work in the TV but is still useful somewhere else.
 
