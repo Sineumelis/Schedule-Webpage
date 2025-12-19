@@ -381,10 +381,11 @@
       const canvas = await html2canvas(container, {
         width: EXPORT_WIDTH,
         height: EXPORT_HEIGHT,
-        scale: 1 / window.devicePixelRatio,
+        scale: 1,
         backgroundColor: "#FFFFFF",
         useCORS: true
       });
+
 
       document.body.removeChild(container);
 
