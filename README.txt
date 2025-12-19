@@ -12,8 +12,7 @@ Hello, thank you for all the time, attention and stopping for Reading this :)
 
 -There is a old version in the commits of this proyect where the image would be clickable and show a full screen, loading images and everything with an OnSnapshot which didn't work in the TV but is still useful somewhere else.
 
-
-
+-If anything fails, normally opening developer mode (Ctrl + Shift + J) should show the problema in the log of events.
 
 
 
